@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Presente {
+  id               String    @id @default(cuid())
+  slug             String    @unique
+  nomeRemetente    String
+  nomeDestinatario String
+  ocasiao          String
+  dataEspecial     DateTime?
+  mensagem         String
+  musica           String
+  musicaUrl        String?
+  tema             String    @default("romantico")
+  status           String    @default("pendente")
+  email            String?
+  paymentId        String?
+  fotos            Foto[]
+  criadoEm         DateTime  @default(now())
+}
+
+model Foto {
+  id         String   @id @default(cuid())
+  url        String
+  ordem      Int
+  presenteId String
+  presente   Presente @relation(fields: [presenteId], references: [id])
+}
