@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://lovegift-six.vercel.app";
+  const origin = new URL(req.url).origin;
 
   let presente: {
     nomeRemetente: string;
@@ -21,7 +21,7 @@ export async function GET(
   } | null = null;
 
   try {
-    const res = await fetch(`${baseUrl}/api/presentes/${slug}`, { cache: "no-store" });
+    const res = await fetch(`${origin}/api/presentes/${slug}`, { cache: "no-store" });
     if (!res.ok) return new Response("Não encontrado", { status: 404 });
     presente = await res.json();
   } catch {
