@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import QRCodeLib from "qrcode";
 import { differenceInDays } from "date-fns";
+import Wrapped from "./Wrapped";
 
 type Foto = { id: string; url: string; ordem: number };
 type Presente = {
@@ -58,6 +59,7 @@ export default function PresentePage() {
   const [fotoAtual, setFotoAtual] = useState(0);
   const [qrCode, setQrCode] = useState("");
   const [aberto, setAberto] = useState(false);
+  const [wrappedAberto, setWrappedAberto] = useState(false);
   const slideInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -154,6 +156,21 @@ export default function PresentePage() {
 
   return (
     <div className={`min-h-screen ${tema.bg} ${tema.text} pb-20`}>
+      {wrappedAberto && (
+        <Wrapped presente={presente} onClose={() => setWrappedAberto(false)} />
+      )}
+
+      {/* Botão Ver História */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+        <button
+          onClick={() => setWrappedAberto(true)}
+          className="flex items-center gap-2 bg-[#e84393] hover:bg-[#c0306f] text-white font-bold px-6 py-3 rounded-full shadow-2xl transition-all hover:scale-105"
+          style={{ boxShadow: "0 8px 32px rgba(232,67,147,0.5)" }}
+        >
+          <span className="text-lg">▶</span> Ver nossa história
+        </button>
+      </div>
+
       {/* BLOCO 1 — Cabeçalho */}
       <section className="text-center py-20 px-4">
         <div className={`text-6xl mb-6 animate-pulse-heart ${tema.accent}`}>♥</div>
