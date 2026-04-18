@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import QRCodeLib from "qrcode";
 import { differenceInDays } from "date-fns";
 import Wrapped from "./Wrapped";
+import Link from "next/link";
 
 type Foto = { id: string; url: string; ordem: number };
 type Presente = {
@@ -60,6 +61,7 @@ export default function PresentePage() {
   const [qrCode, setQrCode] = useState("");
   const [aberto, setAberto] = useState(false);
   const [wrappedAberto, setWrappedAberto] = useState(false);
+  const [copiado, setCopiado] = useState(false);
   const slideInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -80,7 +82,7 @@ export default function PresentePage() {
         setPresente(data);
         setCarregando(false);
         if (typeof window !== "undefined") {
-          QRCodeLib.toDataURL(window.location.href, {
+          QRCodeLib.toDataURL(window.location.href.split("?")[0], {
             width: 200,
             margin: 2,
             color: { dark: "#000000", light: "#ffffff" },
@@ -99,6 +101,20 @@ export default function PresentePage() {
       if (slideInterval.current) clearInterval(slideInterval.current);
     };
   }, [presente]);
+
+  const handleCopiarLink = () => {
+    const url = typeof window !== "undefined" ? window.location.href.split("?")[0] : "";
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    });
+  };
+
+  const handleWhatsapp = () => {
+    const url = typeof window !== "undefined" ? window.location.href.split("?")[0] : "";
+    const texto = encodeURIComponent(`Tenho um presente especial para você ♥ ${url}`);
+    window.open(`https://wa.me/?text=${texto}`, "_blank");
+  };
 
   if (carregando) {
     return (
@@ -133,75 +149,104 @@ export default function PresentePage() {
   if (!aberto) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-center px-4 relative overflow-hidden">
-        {/* Fundo com foto desfocada se tiver fotos */}
+        {/* Fundo com foto desfocada */}
         {presente.fotos.length > 0 && (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={presente.fotos[0].url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 blur-2xl scale-110" />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/60 via-[#0a0a0a]/40 to-[#0a0a0a]/80" />
+            <img src={presente.fotos[0].url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-25 blur-2xl scale-110" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/70 via-[#0a0a0a]/50 to-[#0a0a0a]/85" />
           </>
         )}
-        {/* Brilho central */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, rgba(232,67,147,0.12) 0%, transparent 70%)" }} />
+        {/* Partículas de brilho */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-[#e84393] opacity-10 animate-pulse"
+              style={{
+                width: `${80 + i * 40}px`,
+                height: `${80 + i * 40}px`,
+                top: `${10 + i * 15}%`,
+                left: `${5 + i * 18}%`,
+                animationDelay: `${i * 0.5}s`,
+                filter: "blur(30px)",
+              }}
+            />
+          ))}
+        </div>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, rgba(232,67,147,0.15) 0%, transparent 65%)" }} />
 
-        <div className="relative max-w-sm mx-auto">
+        <div className="relative max-w-sm mx-auto w-full">
           {/* Badge da ocasião */}
           <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-xs text-white/50 uppercase tracking-widest mb-8">
-            {presente.ocasiao}
+            ✨ {presente.ocasiao}
           </div>
 
           {/* Coração animado */}
-          <div className="relative mb-8">
-            <div className="text-7xl animate-pulse-heart" style={{ filter: "drop-shadow(0 0 30px rgba(232,67,147,0.6))" }}>♥</div>
+          <div className="relative mb-6">
+            <div className="text-8xl animate-pulse-heart" style={{ filter: "drop-shadow(0 0 40px rgba(232,67,147,0.7))" }}>♥</div>
           </div>
 
-          <p className="text-white/40 text-sm uppercase tracking-widest mb-3">Um presente especial</p>
+          <p className="text-white/30 text-xs uppercase tracking-widest mb-2">Um presente especial para</p>
           <h1 className="text-5xl font-black text-white mb-3 leading-tight">
-            Para<br />{presente.nomeDestinatario}
+            {presente.nomeDestinatario}
           </h1>
-          <div className="w-8 h-px bg-[#e84393]/50 mx-auto my-5" />
-          <p className="text-white/40 text-base mb-12">
-            Com todo o amor de <span className="text-white/70 font-semibold">{presente.nomeRemetente}</span>
+          <div className="w-12 h-px bg-[#e84393]/40 mx-auto my-5" />
+          <p className="text-white/40 text-base mb-3">
+            Com todo o amor de
           </p>
+          <p className="text-white text-xl font-bold mb-10">{presente.nomeRemetente}</p>
 
           <button
             onClick={() => setAberto(true)}
-            className="w-full bg-[#e84393] hover:bg-[#c0306f] text-white font-bold px-10 py-4 rounded-2xl transition-all hover:scale-105 text-lg"
-            style={{ boxShadow: "0 12px 40px rgba(232,67,147,0.45)" }}
+            className="w-full text-white font-bold px-10 py-5 rounded-2xl transition-all hover:scale-105 text-lg relative overflow-hidden"
+            style={{ background: "linear-gradient(135deg, #e84393 0%, #c0306f 100%)", boxShadow: "0 16px 48px rgba(232,67,147,0.5)" }}
           >
-            Abrir presente ♥
+            <span className="relative z-10">Abrir presente ♥</span>
           </button>
-          <p className="text-white/20 text-xs mt-4">Toque para revelar a surpresa</p>
+          <p className="text-white/20 text-xs mt-5 animate-pulse">Toque para revelar a surpresa</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen ${tema.bg} ${tema.text} pb-20`}>
+    <div className={`min-h-screen ${tema.bg} ${tema.text} pb-28`}>
       {wrappedAberto && (
         <Wrapped presente={presente} onClose={() => setWrappedAberto(false)} />
       )}
 
-      {/* Botão Ver História */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+      {/* Botão flutuante Ver História */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2">
         <button
           onClick={() => setWrappedAberto(true)}
-          className="flex items-center gap-2 bg-[#e84393] hover:bg-[#c0306f] text-white font-bold px-6 py-3 rounded-full shadow-2xl transition-all hover:scale-105"
-          style={{ boxShadow: "0 8px 32px rgba(232,67,147,0.5)" }}
+          className="flex items-center gap-2 text-white font-bold px-7 py-3.5 rounded-full shadow-2xl transition-all hover:scale-105 whitespace-nowrap"
+          style={{ background: "linear-gradient(135deg, #e84393 0%, #c0306f 100%)", boxShadow: "0 8px 32px rgba(232,67,147,0.55)" }}
         >
-          <span className="text-lg">▶</span> Ver nossa história
+          <span>▶</span> Ver nossa história
         </button>
       </div>
 
       {/* BLOCO 1 — Cabeçalho */}
-      <section className="text-center py-20 px-4">
-        <div className={`text-6xl mb-6 animate-pulse-heart ${tema.accent}`}>♥</div>
-        <p className="text-sm opacity-50 mb-2 uppercase tracking-widest">{presente.ocasiao}</p>
-        <h1 className="text-4xl md:text-5xl font-bold mb-3">
-          Para {presente.nomeDestinatario}
-        </h1>
-        <p className="opacity-50 text-lg">Com todo o amor de {presente.nomeRemetente}</p>
+      <section className="text-center py-20 px-4 relative overflow-hidden">
+        {presente.fotos.length > 0 && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={presente.fotos[0].url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 blur-3xl scale-110" />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0a0a0a]" />
+          </>
+        )}
+        <div className="relative">
+          <div className="inline-flex items-center gap-2 bg-[#e84393]/10 border border-[#e84393]/20 rounded-full px-4 py-1 text-xs text-[#e84393] uppercase tracking-widest mb-6">
+            {presente.ocasiao}
+          </div>
+          <div className={`text-6xl mb-5 animate-pulse-heart ${tema.accent}`} style={{ filter: "drop-shadow(0 0 20px rgba(232,67,147,0.4))" }}>♥</div>
+          <p className="text-sm opacity-40 mb-2 uppercase tracking-widest">Para</p>
+          <h1 className="text-5xl md:text-6xl font-black mb-4 leading-tight">
+            {presente.nomeDestinatario}
+          </h1>
+          <p className="opacity-40 text-base">Com todo o amor de <span className="opacity-80 font-semibold">{presente.nomeRemetente}</span></p>
+        </div>
       </section>
 
       {/* MARCADORES */}
@@ -243,22 +288,23 @@ export default function PresentePage() {
 
       {/* BLOCO 2 — Mensagem */}
       <section className="max-w-2xl mx-auto px-4 mb-16">
-        <div className={`${tema.card} border ${tema.border} rounded-3xl p-8`}>
-          <div className="flex items-center gap-3 mb-6 opacity-60">
-            <span className="text-2xl">💌</span>
-            <span className="text-sm uppercase tracking-widest">Uma mensagem especial</span>
+        <h2 className="text-center text-xl font-bold mb-6 opacity-60 uppercase tracking-widest text-sm">💌 Mensagem especial</h2>
+        <div className={`${tema.card} border ${tema.border} rounded-3xl p-8 relative overflow-hidden`}>
+          <div className="absolute top-0 right-0 text-[120px] opacity-5 leading-none select-none">&ldquo;</div>
+          <p className="text-xl leading-relaxed font-light opacity-90 relative z-10">&ldquo;{presente.mensagem}&rdquo;</p>
+          <div className="mt-6 pt-5 border-t border-white/10 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[#e84393]/20 border border-[#e84393]/30 flex items-center justify-center text-sm">♥</div>
+            <p className={`font-bold ${tema.accent}`}>{presente.nomeRemetente}</p>
           </div>
-          <p className="text-xl leading-relaxed italic opacity-90">&ldquo;{presente.mensagem}&rdquo;</p>
-          <p className={`mt-6 font-bold ${tema.accent}`}>— {presente.nomeRemetente}</p>
         </div>
       </section>
 
       {/* BLOCO 3 — Slideshow de Fotos */}
       {presente.fotos.length > 0 && (
         <section className="mb-16">
-          <h2 className="text-center text-2xl font-bold mb-8 px-4">Nossa história em fotos 📸</h2>
+          <h2 className="text-center font-bold mb-8 px-4 text-sm uppercase tracking-widest opacity-60">📸 Nossa história em fotos</h2>
           <div className="relative max-w-lg mx-auto px-4">
-            <div className="aspect-[4/5] rounded-3xl overflow-hidden relative">
+            <div className="aspect-[4/5] rounded-3xl overflow-hidden relative shadow-2xl">
               {presente.fotos.map((foto, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -271,18 +317,28 @@ export default function PresentePage() {
                 />
               ))}
 
+              {/* Gradiente de baixo */}
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />
+
+              {/* Número da foto */}
+              {presente.fotos.length > 1 && (
+                <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur rounded-full px-3 py-1 text-white text-xs font-semibold">
+                  {fotoAtual + 1}/{presente.fotos.length}
+                </div>
+              )}
+
               {/* Controles */}
               {presente.fotos.length > 1 && (
                 <>
                   <button
                     onClick={() => setFotoAtual((prev) => (prev - 1 + presente.fotos.length) % presente.fotos.length)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 backdrop-blur rounded-full flex items-center justify-center text-white text-xl hover:bg-black/70 transition-colors"
                   >
                     ‹
                   </button>
                   <button
                     onClick={() => setFotoAtual((prev) => (prev + 1) % presente.fotos.length)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 backdrop-blur rounded-full flex items-center justify-center text-white text-xl hover:bg-black/70 transition-colors"
                   >
                     ›
                   </button>
@@ -297,8 +353,8 @@ export default function PresentePage() {
                   <button
                     key={i}
                     onClick={() => setFotoAtual(i)}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      i === fotoAtual ? "bg-[#e84393] w-6" : "bg-white/30"
+                    className={`h-1.5 rounded-full transition-all ${
+                      i === fotoAtual ? "bg-[#e84393] w-6" : "bg-white/20 w-1.5"
                     }`}
                   />
                 ))}
@@ -310,16 +366,17 @@ export default function PresentePage() {
 
       {/* BLOCO 4 — Música */}
       <section className="max-w-2xl mx-auto px-4 mb-16">
-        <h2 className="text-center text-2xl font-bold mb-8">Nossa música 🎵</h2>
-        <div className="bg-[#111] rounded-3xl overflow-hidden border border-white/10">
+        <h2 className="text-center font-bold mb-6 text-sm uppercase tracking-widest opacity-60">🎵 Nossa música</h2>
+        <div className="bg-[#111] rounded-3xl overflow-hidden border border-white/10 shadow-xl">
           <div className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-[#e84393]/20 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, rgba(232,67,147,0.2) 0%, rgba(192,48,111,0.2) 100%)", border: "1px solid rgba(232,67,147,0.2)" }}>
                 🎵
               </div>
-              <div>
-                <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Nossa música</p>
-                <p className="font-bold text-lg text-white">{presente.musica}</p>
+              <div className="min-w-0">
+                <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Tocando agora</p>
+                <p className="font-bold text-lg text-white truncate">{presente.musica}</p>
               </div>
             </div>
           </div>
@@ -340,9 +397,9 @@ export default function PresentePage() {
 
       {/* BLOCO 5 — Linha do Tempo */}
       <section className="max-w-2xl mx-auto px-4 mb-16">
-        <h2 className="text-center text-2xl font-bold mb-10">Nossa jornada 🗓️</h2>
+        <h2 className="text-center font-bold mb-8 text-sm uppercase tracking-widest opacity-60">🗓️ Nossa jornada</h2>
         <div className="relative pl-8">
-          <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-[#e84393]/20" />
+          <div className="absolute left-3 top-2 bottom-2 w-px bg-gradient-to-b from-[#e84393]/50 via-[#e84393]/20 to-transparent" />
           {[
             {
               data: presente.dataEspecial
@@ -350,18 +407,25 @@ export default function PresentePage() {
                 : "Um dia especial",
               icon: "💕",
               titulo: "O começo de tudo",
-              desc: `${presente.nomeRemetente} e ${presente.nomeDestinatario} começaram sua história`,
+              desc: `${presente.nomeRemetente} e ${presente.nomeDestinatario} começaram sua história juntos`,
             },
-            { data: "Hoje", icon: "⭐", titulo: "Mais um capítulo lindo", desc: "Cada dia ao seu lado é um presente" },
+            {
+              data: "Hoje",
+              icon: "⭐",
+              titulo: "Mais um capítulo lindo",
+              desc: diasJuntos && diasJuntos > 0
+                ? `São ${diasJuntos.toLocaleString("pt-BR")} dias de amor, crescimento e cumplicidade`
+                : "Cada dia ao seu lado é um presente em si mesmo",
+            },
           ].map((item, i) => (
             <div key={i} className="relative mb-10 last:mb-0">
-              <div className="absolute -left-5 w-8 h-8 bg-[#e84393] rounded-full flex items-center justify-center text-base">
+              <div className="absolute -left-5 w-8 h-8 rounded-full flex items-center justify-center text-base shadow-lg" style={{ background: "linear-gradient(135deg, #e84393, #c0306f)" }}>
                 {item.icon}
               </div>
               <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 ml-4`}>
                 <p className={`text-xs ${tema.accent} font-bold uppercase tracking-widest mb-1`}>{item.data}</p>
                 <h3 className="font-bold mb-1">{item.titulo}</h3>
-                <p className="text-sm opacity-60">{item.desc}</p>
+                <p className="text-sm opacity-60 leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}
@@ -369,27 +433,84 @@ export default function PresentePage() {
       </section>
 
       {/* BLOCO 6 — Encerramento */}
-      <section className="text-center px-4 mb-16">
-        <div className={`text-6xl ${tema.accent} animate-pulse-heart mb-6`}>♥</div>
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">
+      <section className="text-center px-4 mb-10">
+        <div className={`text-6xl ${tema.accent} animate-pulse-heart mb-5`} style={{ filter: "drop-shadow(0 0 20px rgba(232,67,147,0.4))" }}>♥</div>
+        <h2 className="text-3xl md:text-4xl font-black mb-3">
           {presente.nomeRemetente} te ama ♥
         </h2>
         {diasJuntos !== null && diasJuntos > 0 && (
-          <p className="text-lg opacity-60 mb-10">
-            Já são <strong className={tema.accent}>{diasJuntos} dias</strong> juntos
+          <p className="text-base opacity-50 mb-10">
+            Já são <strong className={`${tema.accent} opacity-100`}>{diasJuntos.toLocaleString("pt-BR")} dias</strong> juntos
           </p>
         )}
+      </section>
 
-        {/* QR Code */}
-        {qrCode && (
-          <div className="inline-block">
-            <div className={`${tema.card} border ${tema.border} rounded-3xl p-6 inline-block`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={qrCode} alt="QR Code do presente" className="w-40 h-40 mx-auto rounded-xl" />
-              <p className="text-sm opacity-50 mt-3">Escaneie para abrir este presente de qualquer lugar</p>
-            </div>
+      {/* BLOCO 7 — QR Code + Compartilhar */}
+      <section className="max-w-md mx-auto px-4 mb-12">
+        <div className={`${tema.card} border ${tema.border} rounded-3xl p-7`}>
+          <h3 className="text-center font-bold mb-1 text-sm uppercase tracking-widest opacity-50">Compartilhe este presente</h3>
+          <p className="text-center text-xs opacity-30 mb-6">Envie o link para quem você ama</p>
+
+          {/* Botões de share */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <button
+              onClick={handleWhatsapp}
+              className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe5a] text-white font-bold py-3 rounded-xl transition-all hover:scale-105 text-sm"
+            >
+              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current flex-shrink-0">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.11 1.523 5.836L.057 23.997l6.305-1.654A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.034-1.387l-.36-.214-3.742.981 1-3.641-.235-.374A9.818 9.818 0 012.182 12C2.182 6.573 6.573 2.182 12 2.182S21.818 6.573 21.818 12 17.427 21.818 12 21.818z"/>
+              </svg>
+              WhatsApp
+            </button>
+            <button
+              onClick={handleCopiarLink}
+              className={`flex items-center justify-center gap-2 font-bold py-3 rounded-xl transition-all hover:scale-105 text-sm border ${
+                copiado
+                  ? "bg-green-500/20 border-green-500/50 text-green-400"
+                  : "bg-white/5 border-white/10 text-white hover:bg-white/10"
+              }`}
+            >
+              {copiado ? (
+                <><span>✓</span> Copiado!</>
+              ) : (
+                <><span>🔗</span> Copiar link</>
+              )}
+            </button>
           </div>
-        )}
+
+          {/* QR Code */}
+          {qrCode && (
+            <div className="text-center">
+              <p className="text-xs opacity-30 mb-3 uppercase tracking-widest">ou escaneie o QR Code</p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={qrCode} alt="QR Code do presente" className="w-32 h-32 mx-auto rounded-xl opacity-80" />
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* CTA — Crie o seu */}
+      <section className="max-w-md mx-auto px-4 pb-4">
+        <div className="rounded-3xl p-7 text-center border border-[#e84393]/20 relative overflow-hidden"
+          style={{ background: "linear-gradient(135deg, rgba(232,67,147,0.08) 0%, rgba(192,48,111,0.04) 100%)" }}>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at top, rgba(232,67,147,0.08) 0%, transparent 70%)" }} />
+          <div className="relative">
+            <p className="text-2xl mb-3">🎁</p>
+            <h3 className="font-black text-xl mb-2 text-white">Crie um presente igual</h3>
+            <p className="text-sm opacity-50 mb-5 leading-relaxed">
+              Emocione quem você ama com fotos, música e uma retrospectiva animada. Por apenas R$ 9,90.
+            </p>
+            <Link
+              href="/criar"
+              className="inline-block font-bold px-8 py-3.5 rounded-2xl text-white text-sm transition-all hover:scale-105"
+              style={{ background: "linear-gradient(135deg, #e84393 0%, #c0306f 100%)", boxShadow: "0 8px 24px rgba(232,67,147,0.35)" }}
+            >
+              Criar meu presente → R$ 9,90
+            </Link>
+            <p className="text-xs opacity-25 mt-3">Pagamento único · Entrega imediata · Acesso permanente</p>
+          </div>
+        </div>
       </section>
     </div>
   );
