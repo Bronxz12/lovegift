@@ -121,15 +121,23 @@ export default function PresentePage() {
 
   const handleInstagram = async () => {
     const url = typeof window !== "undefined" ? window.location.href.split("?")[0] : "";
-    if (navigator.share) {
-      try {
+    try {
+      const res = await fetch(`/api/story/${slug}`);
+      const blob = await res.blob();
+      const file = new File([blob], "lovegift-story.png", { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: `Um presente especial para ${presente?.nomeDestinatario} ♥`,
-          text: "Tenho um presente especial para você ♥",
-          url,
+          files: [file],
+          title: `Um presente para ${presente?.nomeDestinatario} ♥`,
+          text: `Abra em: ${url}`,
         });
-      } catch {}
-    } else {
+      } else {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "lovegift-story.png";
+        a.click();
+      }
+    } catch {
       navigator.clipboard.writeText(url).then(() => {
         setCopiado(true);
         setTimeout(() => setCopiado(false), 2000);
