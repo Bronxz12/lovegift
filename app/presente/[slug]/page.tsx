@@ -122,21 +122,156 @@ export default function PresentePage() {
   const handleInstagram = async () => {
     const url = typeof window !== "undefined" ? window.location.href.split("?")[0] : "";
     try {
-      const res = await fetch(`/api/story/${slug}`);
-      const blob = await res.blob();
-      const file = new File([blob], "lovegift-story.png", { type: "image/png" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: `Um presente para ${presente?.nomeDestinatario} ♥`,
-          text: `Abra em: ${url}`,
-        });
-      } else {
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "lovegift-story.png";
-        a.click();
-      }
+      const W = 1080, H = 1920;
+      const canvas = document.createElement("canvas");
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext("2d")!;
+
+      // Fundo
+      const bg = ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, "#1a0010");
+      bg.addColorStop(0.4, "#0a0a0a");
+      bg.addColorStop(1, "#1a0010");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+
+      // Glow central
+      const glow = ctx.createRadialGradient(W / 2, H * 0.42, 0, W / 2, H * 0.42, 500);
+      glow.addColorStop(0, "rgba(232,67,147,0.22)");
+      glow.addColorStop(1, "transparent");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, W, H);
+
+      const draw = () => {
+        const nome = presente?.nomeDestinatario ?? "Você";
+        const rem = presente?.nomeRemetente ?? "";
+        const msg = presente?.mensagem ?? "";
+        const msgCurta = msg.length > 100 ? msg.slice(0, 97) + "…" : msg;
+
+        // Logo
+        ctx.font = "bold 52px sans-serif";
+        ctx.fillStyle = "#e84393";
+        ctx.textAlign = "center";
+        ctx.fillText("♥ LoveGift", W / 2, 130);
+
+        // Foto ou coração
+        const fotoUrl = presente?.fotos?.[0]?.url ?? null;
+        const drawCard = (imgOrNull: HTMLImageElement | null) => {
+          const cx = W / 2, cy = H * 0.37, r = 32, s = 480;
+          const x = cx - s / 2, y = cy - s / 2;
+          // Borda rosa
+          ctx.save();
+          ctx.beginPath();
+          ctx.roundRect(x - 4, y - 4, s + 8, s + 8, r + 4);
+          ctx.fillStyle = "rgba(232,67,147,0.4)";
+          ctx.fill();
+          // Clip para foto
+          ctx.beginPath();
+          ctx.roundRect(x, y, s, s, r);
+          ctx.clip();
+          if (imgOrNull) {
+            const ratio = Math.max(s / imgOrNull.width, s / imgOrNull.height);
+            const dw = imgOrNull.width * ratio, dh = imgOrNull.height * ratio;
+            ctx.drawImage(imgOrNull, cx - dw / 2, cy - dh / 2, dw, dh);
+          } else {
+            ctx.fillStyle = "rgba(232,67,147,0.15)";
+            ctx.fillRect(x, y, s, s);
+            ctx.font = "200px sans-serif";
+            ctx.fillStyle = "#e84393";
+            ctx.fillText("♥", cx, cy + 70);
+          }
+          ctx.restore();
+
+          // PARA
+          ctx.font = "36px sans-serif";
+          ctx.fillStyle = "rgba(255,255,255,0.5)";
+          ctx.letterSpacing = "6px";
+          ctx.fillText("PARA", W / 2, H * 0.57);
+          ctx.letterSpacing = "0px";
+
+          // Nome
+          ctx.font = "bold 90px sans-serif";
+          ctx.fillStyle = "#ffffff";
+          ctx.fillText(nome, W / 2, H * 0.63);
+
+          // Mensagem
+          if (msgCurta) {
+            ctx.font = "italic 36px sans-serif";
+            ctx.fillStyle = "rgba(255,255,255,0.7)";
+            const words = `"${msgCurta}"`.split(" ");
+            let line = "", lineY = H * 0.70;
+            for (const word of words) {
+              const test = line + word + " ";
+              if (ctx.measureText(test).width > 900 && line) {
+                ctx.fillText(line.trim(), W / 2, lineY);
+                line = word + " ";
+                lineY += 52;
+              } else {
+                line = test;
+              }
+            }
+            if (line) ctx.fillText(line.trim(), W / 2, lineY);
+          }
+
+          // Remetente
+          if (rem) {
+            ctx.font = "34px sans-serif";
+            ctx.fillStyle = "#e84393";
+            ctx.fillText(`— ${rem} ♥`, W / 2, H * 0.83);
+          }
+
+          // Botão CTA
+          const btnW = 640, btnH = 90, btnX = W / 2 - btnW / 2, btnY = H - 220;
+          ctx.save();
+          ctx.beginPath();
+          ctx.roundRect(btnX, btnY, btnW, btnH, 45);
+          const btnGrad = ctx.createLinearGradient(btnX, 0, btnX + btnW, 0);
+          btnGrad.addColorStop(0, "#e84393");
+          btnGrad.addColorStop(1, "#c0306f");
+          ctx.fillStyle = btnGrad;
+          ctx.fill();
+          ctx.restore();
+          ctx.font = "bold 40px sans-serif";
+          ctx.fillStyle = "#ffffff";
+          ctx.fillText("Abra seu presente ♥", W / 2, btnY + 60);
+
+          // URL
+          ctx.font = "28px sans-serif";
+          ctx.fillStyle = "rgba(255,255,255,0.3)";
+          ctx.fillText("lovegift.com.br", W / 2, H - 90);
+
+          // Exporta
+          canvas.toBlob(async (blob) => {
+            if (!blob) throw new Error("canvas vazio");
+            const file = new File([blob], "lovegift-story.png", { type: "image/png" });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                files: [file],
+                title: `Um presente para ${nome} ♥`,
+                text: `Abra em: ${url}`,
+              });
+            } else {
+              const a = document.createElement("a");
+              a.href = URL.createObjectURL(blob);
+              a.download = "lovegift-story.png";
+              a.click();
+            }
+          }, "image/png");
+        };
+
+        if (fotoUrl) {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => drawCard(img);
+          img.onerror = () => drawCard(null);
+          img.src = fotoUrl;
+        } else {
+          drawCard(null);
+        }
+      };
+
+      draw();
     } catch {
       navigator.clipboard.writeText(url).then(() => {
         setCopiado(true);
