@@ -72,6 +72,9 @@ export default function PresentePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug }),
       }).catch(() => {});
+      if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).fbq) {
+        (window as unknown as Record<string, (a: string, b: string, c?: Record<string, unknown>) => void>).fbq("track", "Purchase", { value: 9.90, currency: "BRL" });
+      }
     }
   }, [slug, searchParams]);
 
