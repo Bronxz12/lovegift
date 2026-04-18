@@ -2,39 +2,44 @@ import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
 export const runtime = "edge";
-export const dynamic = "force-dynamic";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const origin = new URL(req.url).origin;
 
-  let presente: {
-    nomeRemetente: string;
-    nomeDestinatario: string;
-    ocasiao: string;
-    dataEspecial: string | null;
-    mensagem: string;
-    fotos: { url: string }[];
-  } | null = null;
+  let nomeDestinatario = "Você";
+  let nomeRemetente = "Alguém especial";
+  let mensagem = "Uma mensagem especial para você ♥";
+  let dias: number | null = null;
+  let fotoUrl: string | null = null;
+  let ocasiao = "Aniversário de namoro";
 
   try {
-    const res = await fetch(`${origin}/api/presentes/${slug}`, { cache: "no-store" });
-    if (!res.ok) return new Response("Não encontrado", { status: 404 });
-    presente = await res.json();
+    const origin = new URL(req.url).origin;
+    const res = await fetch(`${origin}/api/presentes/${slug}`, {
+      headers: { "User-Agent": "LoveGift-Story-Generator/1.0" },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      nomeDestinatario = data.nomeDestinatario ?? nomeDestinatario;
+      nomeRemetente = data.nomeRemetente ?? nomeRemetente;
+      mensagem = data.mensagem ?? mensagem;
+      ocasiao = data.ocasiao ?? ocasiao;
+      fotoUrl = data.fotos?.[0]?.url ?? null;
+      if (data.dataEspecial) {
+        dias = Math.floor(
+          (Date.now() - new Date(data.dataEspecial).getTime()) / 86400000
+        );
+      }
+    }
   } catch {
-    return new Response("Erro ao buscar presente", { status: 500 });
+    // usa valores padrão
   }
 
-  if (!presente) return new Response("Não encontrado", { status: 404 });
-
-  const dias = presente.dataEspecial
-    ? Math.floor((Date.now() - new Date(presente.dataEspecial).getTime()) / (1000 * 60 * 60 * 24))
-    : null;
-
-  const fotoUrl = presente.fotos[0]?.url ?? null;
+  const mensagemPreview =
+    mensagem.length > 100 ? mensagem.slice(0, 100) + "..." : mensagem;
 
   const GRADIENTS: Record<string, [string, string]> = {
     "Aniversário de namoro": ["#3d0018", "#8b1a42"],
@@ -44,19 +49,7 @@ export async function GET(
     "Só porque sim": ["#002535", "#0770a0"],
   };
 
-  const EMOJIS: Record<string, string> = {
-    "Aniversário de namoro": "♥",
-    "Dia dos Namorados": "💕",
-    "Aniversário": "🎂",
-    "Pedido de namoro": "💍",
-    "Só porque sim": "✨",
-  };
-
-  const [c1, c2] = GRADIENTS[presente.ocasiao] ?? ["#1a0030", "#6d1060"];
-  const emoji = EMOJIS[presente.ocasiao] ?? "♥";
-  const mensagemPreview = presente.mensagem.length > 110
-    ? presente.mensagem.slice(0, 110) + "..."
-    : presente.mensagem;
+  const [c1, c2] = GRADIENTS[ocasiao] ?? ["#1a0030", "#6d1060"];
 
   return new ImageResponse(
     (
@@ -69,123 +62,194 @@ export async function GET(
           alignItems: "center",
           justifyContent: "center",
           background: `linear-gradient(160deg, ${c1} 0%, ${c2} 100%)`,
-          fontFamily: "sans-serif",
           position: "relative",
-          overflow: "hidden",
         }}
       >
-        {/* Foto de fundo desfocada */}
+        {/* Foto de fundo */}
         {fotoUrl && (
           <img
             src={fotoUrl}
             alt=""
+            width={1080}
+            height={1920}
             style={{
               position: "absolute",
-              top: 0, left: 0,
-              width: "1080px",
-              height: "1920px",
+              top: 0,
+              left: 0,
               objectFit: "cover",
-              opacity: 0.12,
+              opacity: 0.15,
             }}
           />
         )}
 
-        {/* Overlay */}
-        <div style={{
-          position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.6) 100%)",
-        }} />
-
-        {/* Logo topo */}
-        <div style={{ position: "absolute", top: "64px", display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ color: "#e84393", fontSize: "32px" }}>♥</span>
-          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "26px", letterSpacing: "6px" }}>LOVEGIFT</span>
+        {/* Logo */}
+        <div
+          style={{
+            position: "absolute",
+            top: "70px",
+            display: "flex",
+            alignItems: "center",
+            gap: "14px",
+          }}
+        >
+          <span style={{ color: "#e84393", fontSize: "36px" }}>♥</span>
+          <span
+            style={{
+              color: "rgba(255,255,255,0.45)",
+              fontSize: "28px",
+              letterSpacing: "8px",
+            }}
+          >
+            LOVEGIFT
+          </span>
         </div>
 
-        {/* Conteúdo central */}
-        <div style={{
-          display: "flex", flexDirection: "column", alignItems: "center",
-          textAlign: "center", padding: "0 80px", width: "100%", position: "relative",
-        }}>
-          {/* Foto circular */}
-          {fotoUrl ? (
-            <div style={{
-              width: "460px", height: "460px", borderRadius: "230px",
-              overflow: "hidden", marginBottom: "44px",
-              border: "5px solid rgba(232,67,147,0.5)",
+        {/* Foto circular */}
+        {fotoUrl && (
+          <div
+            style={{
+              width: "460px",
+              height: "460px",
+              borderRadius: "50%",
+              overflow: "hidden",
+              border: "5px solid rgba(232,67,147,0.6)",
+              marginBottom: "48px",
               display: "flex",
-            }}>
-              <img src={fotoUrl} alt="" style={{ width: "460px", height: "460px", objectFit: "cover" }} />
-            </div>
-          ) : (
-            <div style={{ fontSize: "130px", marginBottom: "44px" }}>{emoji}</div>
-          )}
-
-          {/* Badge */}
-          <div style={{
-            background: "rgba(232,67,147,0.15)",
-            border: "1px solid rgba(232,67,147,0.35)",
-            borderRadius: "100px",
-            padding: "12px 32px",
-            color: "#e84393",
-            fontSize: "24px",
-            letterSpacing: "3px",
-            marginBottom: "36px",
-          }}>
-            {presente.ocasiao.toUpperCase()}
+            }}
+          >
+            <img
+              src={fotoUrl}
+              alt=""
+              width={460}
+              height={460}
+              style={{ objectFit: "cover" }}
+            />
           </div>
+        )}
 
-          {/* Para */}
-          <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "30px", letterSpacing: "4px", marginBottom: "8px" }}>PARA</div>
-          <div style={{ color: "#ffffff", fontSize: "96px", fontWeight: 900, lineHeight: "1", marginBottom: "12px" }}>
-            {presente.nomeDestinatario}
+        {!fotoUrl && (
+          <div style={{ fontSize: "120px", marginBottom: "48px" }}>♥</div>
+        )}
+
+        {/* Para */}
+        <div
+          style={{
+            color: "rgba(255,255,255,0.35)",
+            fontSize: "30px",
+            letterSpacing: "6px",
+            marginBottom: "8px",
+          }}
+        >
+          PARA
+        </div>
+        <div
+          style={{
+            color: "#ffffff",
+            fontSize: "100px",
+            fontWeight: 900,
+            lineHeight: "1",
+            marginBottom: "12px",
+          }}
+        >
+          {nomeDestinatario}
+        </div>
+        <div
+          style={{
+            color: "rgba(255,255,255,0.4)",
+            fontSize: "32px",
+            marginBottom: "40px",
+          }}
+        >
+          de {nomeRemetente}
+        </div>
+
+        {/* Divisor */}
+        <div
+          style={{
+            width: "80px",
+            height: "2px",
+            background: "#e84393",
+            marginBottom: "40px",
+            opacity: 0.6,
+          }}
+        />
+
+        {/* Dias */}
+        {dias !== null && dias > 0 && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: "12px",
+              marginBottom: "40px",
+            }}
+          >
+            <span
+              style={{
+                color: "#e84393",
+                fontSize: "80px",
+                fontWeight: 900,
+                lineHeight: 1,
+              }}
+            >
+              {dias}
+            </span>
+            <span
+              style={{ color: "rgba(255,255,255,0.4)", fontSize: "30px" }}
+            >
+              dias juntos
+            </span>
           </div>
-          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "30px", marginBottom: "36px" }}>
-            de {presente.nomeRemetente}
-          </div>
+        )}
 
-          {/* Divisor */}
-          <div style={{ width: "80px", height: "2px", background: "rgba(232,67,147,0.5)", marginBottom: "36px" }} />
-
-          {/* Dias juntos */}
-          {dias !== null && dias > 0 && (
-            <div style={{ display: "flex", alignItems: "baseline", gap: "12px", marginBottom: "36px" }}>
-              <span style={{ color: "#e84393", fontSize: "84px", fontWeight: 900, lineHeight: 1 }}>
-                {dias.toLocaleString("pt-BR")}
-              </span>
-              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "30px", letterSpacing: "2px" }}>dias juntos</span>
-            </div>
-          )}
-
-          {/* Mensagem */}
-          <div style={{
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.1)",
+        {/* Mensagem */}
+        <div
+          style={{
+            background: "rgba(255,255,255,0.07)",
+            border: "1px solid rgba(255,255,255,0.12)",
             borderRadius: "24px",
-            padding: "36px 48px",
+            padding: "36px 52px",
             maxWidth: "880px",
-          }}>
-            <div style={{ color: "rgba(255,255,255,0.75)", fontSize: "32px", fontStyle: "italic", lineHeight: "1.5" }}>
-              &ldquo;{mensagemPreview}&rdquo;
-            </div>
+            margin: "0 80px",
+          }}
+        >
+          <div
+            style={{
+              color: "rgba(255,255,255,0.8)",
+              fontSize: "30px",
+              fontStyle: "italic",
+              lineHeight: "1.6",
+            }}
+          >
+            &ldquo;{mensagemPreview}&rdquo;
           </div>
         </div>
 
         {/* Rodapé */}
-        <div style={{
-          position: "absolute", bottom: "64px",
-          display: "flex", flexDirection: "column", alignItems: "center", gap: "14px",
-        }}>
-          <div style={{ color: "rgba(255,255,255,0.2)", fontSize: "22px" }}>Abra o presente em</div>
-          <div style={{
-            background: "rgba(232,67,147,0.15)",
-            border: "1px solid rgba(232,67,147,0.25)",
-            borderRadius: "100px",
-            padding: "14px 40px",
-            color: "#e84393",
-            fontSize: "26px",
-            fontWeight: 600,
-          }}>
+        <div
+          style={{
+            position: "absolute",
+            bottom: "70px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "14px",
+          }}
+        >
+          <div style={{ color: "rgba(255,255,255,0.2)", fontSize: "22px" }}>
+            Abra em
+          </div>
+          <div
+            style={{
+              background: "rgba(232,67,147,0.15)",
+              border: "1px solid rgba(232,67,147,0.3)",
+              borderRadius: "100px",
+              padding: "14px 40px",
+              color: "#e84393",
+              fontSize: "26px",
+              fontWeight: 600,
+            }}
+          >
             lovegift-six.vercel.app
           </div>
         </div>
