@@ -132,23 +132,46 @@ export default function PresentePage() {
 
   if (!aberto) {
     return (
-      <div className={`min-h-screen ${tema.bg} flex items-center justify-center text-center px-4`}>
-        <div className="max-w-md">
-          <div className={`text-8xl mb-8 animate-pulse-heart ${tema.accent}`}>♥</div>
-          <p className={`text-lg ${tema.text} opacity-60 mb-2`}>Um presente especial</p>
-          <h1 className={`text-4xl md:text-5xl font-bold ${tema.text} mb-2`}>
-            Para {presente.nomeDestinatario}
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-center px-4 relative overflow-hidden">
+        {/* Fundo com foto desfocada se tiver fotos */}
+        {presente.fotos.length > 0 && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={presente.fotos[0].url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 blur-2xl scale-110" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/60 via-[#0a0a0a]/40 to-[#0a0a0a]/80" />
+          </>
+        )}
+        {/* Brilho central */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, rgba(232,67,147,0.12) 0%, transparent 70%)" }} />
+
+        <div className="relative max-w-sm mx-auto">
+          {/* Badge da ocasião */}
+          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-xs text-white/50 uppercase tracking-widest mb-8">
+            {presente.ocasiao}
+          </div>
+
+          {/* Coração animado */}
+          <div className="relative mb-8">
+            <div className="text-7xl animate-pulse-heart" style={{ filter: "drop-shadow(0 0 30px rgba(232,67,147,0.6))" }}>♥</div>
+          </div>
+
+          <p className="text-white/40 text-sm uppercase tracking-widest mb-3">Um presente especial</p>
+          <h1 className="text-5xl font-black text-white mb-3 leading-tight">
+            Para<br />{presente.nomeDestinatario}
           </h1>
-          <p className={`${tema.text} opacity-50 mb-10`}>
-            Com todo o amor de {presente.nomeRemetente}
+          <div className="w-8 h-px bg-[#e84393]/50 mx-auto my-5" />
+          <p className="text-white/40 text-base mb-12">
+            Com todo o amor de <span className="text-white/70 font-semibold">{presente.nomeRemetente}</span>
           </p>
+
           <button
             onClick={() => setAberto(true)}
-            className={`bg-[#e84393] hover:bg-[#c0306f] text-white font-bold px-10 py-4 rounded-full transition-all hover:scale-105 text-lg`}
-            style={{ boxShadow: "0 10px 40px rgba(232,67,147,0.4)" }}
+            className="w-full bg-[#e84393] hover:bg-[#c0306f] text-white font-bold px-10 py-4 rounded-2xl transition-all hover:scale-105 text-lg"
+            style={{ boxShadow: "0 12px 40px rgba(232,67,147,0.45)" }}
           >
             Abrir presente ♥
           </button>
+          <p className="text-white/20 text-xs mt-4">Toque para revelar a surpresa</p>
         </div>
       </div>
     );

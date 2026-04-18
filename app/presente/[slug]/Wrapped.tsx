@@ -295,18 +295,26 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
 
         {/* ── FOTO ── */}
         {slide.type === "foto" && (
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-black overflow-hidden">
+            {/* Fundo desfocado */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={(slide.foto as Foto).url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/50" />
+            <img src={(slide.foto as Foto).url} alt="" className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-50" />
+            {/* Foto contida sem distorção */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={(slide.foto as Foto).url} alt="" className="absolute inset-0 w-full h-full object-contain" />
+            {/* Gradientes topo e base */}
+            <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/70 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/90 to-transparent" />
+            {/* Contador topo */}
             <div className="absolute top-12 left-0 right-0 text-center px-8">
-              <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-3 py-1 text-xs text-white/60 uppercase tracking-widest">
+              <span className="inline-flex items-center gap-2 bg-black/30 backdrop-blur border border-white/10 rounded-full px-3 py-1 text-xs text-white/60 uppercase tracking-widest">
                 {(slide.index as number) + 1} de {slide.total as number}
               </span>
             </div>
-            <div className="absolute bottom-16 left-0 right-0 px-8">
-              <p className="text-white/50 text-xs uppercase tracking-widest mb-2 text-center">Nossa história</p>
-              <p className="text-white font-semibold text-xl text-center leading-snug">
+            {/* Legenda base */}
+            <div className="absolute bottom-14 left-0 right-0 px-8">
+              <p className="text-white/40 text-xs uppercase tracking-widest mb-2 text-center">Nossa história</p>
+              <p className="text-white font-semibold text-lg text-center leading-snug drop-shadow-lg">
                 {fotoCaptions[(slide.index as number) % fotoCaptions.length]}
               </p>
               <div className="flex justify-center mt-4 gap-1">
