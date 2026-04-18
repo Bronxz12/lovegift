@@ -312,7 +312,7 @@ export default function CriarPage() {
               </div>
               <div className="border-t border-white/10 pt-4 flex justify-between items-center">
                 <span className="font-bold text-lg">Total</span>
-                <span className="text-2xl font-bold text-[#e84393]">R$ 29,90</span>
+                <span className="text-2xl font-bold text-[#e84393]">R$ 9,90</span>
               </div>
               <p className="text-xs text-white/30 mt-2">Pagamento único · Acesso permanente · Sem mensalidade</p>
             </div>
@@ -323,7 +323,7 @@ export default function CriarPage() {
                 className="flex-grow bg-[#e84393] hover:bg-[#c0306f] disabled:opacity-50 text-white font-bold py-4 rounded-2xl transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
                 {carregando ? (
                   <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Processando...</>
-                ) : "Pagar R$ 29,90 →"}
+                ) : "Pagar R$ 9,90 →"}
               </button>
             </div>
 

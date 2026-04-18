@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
             id: slug,
             title: `LoveGift — Presente para ${presente.nomeDestinatario}`,
             quantity: 1,
-            unit_price: 29.9,
+            unit_price: 9.9,
             currency_id: "BRL",
           },
         ],
