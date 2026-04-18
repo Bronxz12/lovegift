@@ -94,6 +94,12 @@ export default function PresentePage() {
             color: { dark: "#000000", light: "#ffffff" },
           }).then(setQrCode);
         }
+        // Notifica o remetente que o presente foi aberto
+        fetch("/api/notificar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slug }),
+        }).catch(() => {});
       })
       .catch(() => setCarregando(false));
   }, [slug]);

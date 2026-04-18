@@ -19,6 +19,7 @@ model Presente {
   tema             String    @default("romantico")
   status           String    @default("pendente")
   email            String?
+  notificadoEm     DateTime?
   paymentId        String?
   fotos            Foto[]
   criadoEm         DateTime  @default(now())
