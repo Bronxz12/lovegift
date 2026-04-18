@@ -52,7 +52,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto relative">
           <div className="inline-flex items-center gap-2 bg-[#e84393]/10 border border-[#e84393]/30 rounded-full px-4 py-2 text-sm text-[#e84393] mb-8">
             <span>✨</span>
-            <span>+50.000 presentes criados</span>
+            <span>+50.000 presentes criados · Nota 5 estrelas</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
@@ -60,13 +60,14 @@ export default function Home() {
             <span className="text-[#e84393]">forma única.</span>
           </h1>
 
-          <p className="text-xl text-white/60 mb-10 max-w-2xl mx-auto">
-            Crie um presente digital com fotos, música e retrospectiva animada.
-            Pronto em 5 minutos.
+          <p className="text-xl text-white/60 mb-4 max-w-2xl mx-auto">
+            Crie um presente digital inesquecível com fotos, música e retrospectiva animada estilo Spotify Wrapped.
+            Pronto em 5 minutos. Por apenas <strong className="text-white">R$ 9,90</strong>.
           </p>
+          <p className="text-sm text-white/30 mb-10">Sem mensalidade · Acesso permanente · Entrega imediata</p>
 
           <Link href="/criar" className="inline-block bg-[#e84393] hover:bg-[#c0306f] text-white text-lg font-bold px-10 py-4 rounded-full transition-all hover:scale-105 shadow-lg" style={{boxShadow: "0 10px 40px rgba(232,67,147,0.3)"}}>
-            Surpreender meu amor agora →
+            Criar presente por R$ 9,90 →
           </Link>
 
           <div className="mt-8 flex items-center justify-center gap-3">
@@ -214,10 +215,14 @@ export default function Home() {
             <div className="inline-flex items-center gap-2 bg-[#e84393] text-white text-xs font-bold px-3 py-1 rounded-full mb-6">
               ✦ MAIS POPULAR
             </div>
-            <div className="text-6xl font-bold mb-2">
-              R$&nbsp;<span className="text-[#e84393]">29</span><span className="text-2xl text-white/50">,90</span>
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <span className="text-white/30 line-through text-2xl">R$ 29,90</span>
+              <span className="bg-[#e84393] text-white text-xs font-bold px-2 py-1 rounded-full">-66%</span>
             </div>
-            <p className="text-white/40 text-sm mb-8">Pagamento único · Sem mensalidade · Acesso imediato</p>
+            <div className="text-6xl font-bold mb-2">
+              R$&nbsp;<span className="text-[#e84393]">9</span><span className="text-2xl text-white/50">,90</span>
+            </div>
+            <p className="text-white/40 text-sm mb-8">Pagamento único · Sem mensalidade · Acesso permanente</p>
             <ul className="text-left space-y-3 mb-8">
               {["Retrospectiva animada com suas fotos", "Música personalizada do casal", "Linha do tempo elegante", "Link permanente + QR Code", "3 temas visuais para escolher", "Compatível com celular e computador"].map((item, i) => (
                 <li key={i} className="flex items-center gap-3 text-sm text-white/80">
@@ -228,6 +233,7 @@ export default function Home() {
             <Link href="/criar" className="block w-full bg-[#e84393] hover:bg-[#c0306f] text-white font-bold py-4 rounded-2xl transition-all hover:scale-105" style={{boxShadow: "0 8px 30px rgba(232,67,147,0.3)"}}>
               Criar meu presente agora →
             </Link>
+            <p className="text-white/25 text-xs mt-4 text-center">🔒 Pagamento seguro via Mercado Pago · Pix, Cartão ou Boleto</p>
           </div>
         </div>
       </section>
@@ -264,10 +270,12 @@ export default function Home() {
         <div className="max-w-2xl mx-auto">
           <div className="text-6xl mb-6 animate-pulse-heart">♥</div>
           <h2 className="text-4xl font-bold mb-4">Pronto para emocionar?</h2>
-          <p className="text-white/50 mb-10">Crie agora e surpreenda a pessoa mais especial da sua vida.</p>
+          <p className="text-white/50 mb-3">Crie agora e surpreenda a pessoa mais especial da sua vida.</p>
+          <p className="text-[#e84393] font-semibold mb-10">Por apenas R$ 9,90 — pagamento único, sem mensalidade.</p>
           <Link href="/criar" className="inline-block bg-[#e84393] hover:bg-[#c0306f] text-white text-lg font-bold px-12 py-5 rounded-full transition-all hover:scale-105" style={{boxShadow: "0 10px 40px rgba(232,67,147,0.3)"}}>
-            Criar meu presente →
+            Criar meu presente agora →
           </Link>
+          <p className="text-white/20 text-sm mt-6">🔒 Pagamento seguro · Acesso imediato após confirmação</p>
         </div>
       </section>
 
