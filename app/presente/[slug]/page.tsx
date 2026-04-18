@@ -204,6 +204,43 @@ export default function PresentePage() {
         <p className="opacity-50 text-lg">Com todo o amor de {presente.nomeRemetente}</p>
       </section>
 
+      {/* MARCADORES */}
+      <section className="max-w-2xl mx-auto px-4 mb-16">
+        <div className="grid grid-cols-2 gap-3">
+          {diasJuntos !== null && diasJuntos > 0 && (
+            <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
+              <p className={`text-3xl font-black ${tema.accent}`}>{diasJuntos.toLocaleString("pt-BR")}</p>
+              <p className="text-xs opacity-50 uppercase tracking-widest mt-1">dias juntos</p>
+            </div>
+          )}
+          {diasJuntos !== null && diasJuntos > 0 && (
+            <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
+              <p className={`text-3xl font-black ${tema.accent}`}>{Math.floor(diasJuntos / 30)}</p>
+              <p className="text-xs opacity-50 uppercase tracking-widest mt-1">meses juntos</p>
+            </div>
+          )}
+          <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
+            <p className={`text-3xl font-black ${tema.accent}`}>{presente.fotos.length}</p>
+            <p className="text-xs opacity-50 uppercase tracking-widest mt-1">{presente.fotos.length === 1 ? "foto especial" : "fotos especiais"}</p>
+          </div>
+          {presente.dataEspecial && (
+            <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
+              <p className={`text-lg font-black ${tema.accent}`}>
+                {new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+              </p>
+              <p className="text-xs opacity-50 uppercase tracking-widest mt-1">data especial</p>
+            </div>
+          )}
+          {!presente.dataEspecial && (
+            <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
+              <p className="text-2xl">🎵</p>
+              <p className={`text-sm font-semibold ${tema.accent} mt-1 truncate`}>{presente.musica}</p>
+              <p className="text-xs opacity-50 uppercase tracking-widest mt-1">nossa música</p>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* BLOCO 2 — Mensagem */}
       <section className="max-w-2xl mx-auto px-4 mb-16">
         <div className={`${tema.card} border ${tema.border} rounded-3xl p-8`}>
