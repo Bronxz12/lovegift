@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import QRCodeLib from "qrcode";
 import { differenceInDays } from "date-fns";
+import confetti from "canvas-confetti";
 import Wrapped from "./Wrapped";
 import Link from "next/link";
 
@@ -62,7 +63,9 @@ export default function PresentePage() {
   const [aberto, setAberto] = useState(false);
   const [wrappedAberto, setWrappedAberto] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  const [contador, setContador] = useState({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
   const slideInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const contadorInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const pago = searchParams.get("pago");
@@ -103,6 +106,44 @@ export default function PresentePage() {
     return () => {
       if (slideInterval.current) clearInterval(slideInterval.current);
     };
+  }, [presente]);
+
+  // Confetti na abertura
+  useEffect(() => {
+    if (!aberto) return;
+    const fire = (angle: number, origin: { x: number; y: number }) => {
+      confetti({
+        particleCount: 60,
+        spread: 55,
+        angle,
+        origin,
+        colors: ["#e84393", "#ff6eb4", "#ffffff", "#c0306f", "#ffb3d9"],
+      });
+    };
+    const t = setTimeout(() => {
+      fire(60, { x: 0, y: 0.65 });
+      fire(120, { x: 1, y: 0.65 });
+    }, 300);
+    return () => clearTimeout(t);
+  }, [aberto]);
+
+  // Contador ao vivo
+  useEffect(() => {
+    if (!presente?.dataEspecial) return;
+    const dataBase = new Date(presente.dataEspecial);
+    const tick = () => {
+      const diff = Date.now() - dataBase.getTime();
+      if (diff <= 0) return;
+      const totalSeg = Math.floor(diff / 1000);
+      const dias = Math.floor(totalSeg / 86400);
+      const horas = Math.floor((totalSeg % 86400) / 3600);
+      const minutos = Math.floor((totalSeg % 3600) / 60);
+      const segundos = totalSeg % 60;
+      setContador({ dias, horas, minutos, segundos });
+    };
+    tick();
+    contadorInterval.current = setInterval(tick, 1000);
+    return () => { if (contadorInterval.current) clearInterval(contadorInterval.current); };
   }, [presente]);
 
   const handleCopiarLink = () => {
@@ -413,27 +454,43 @@ export default function PresentePage() {
         </div>
       </section>
 
+      {/* CONTADOR AO VIVO */}
+      {presente.dataEspecial && (
+        <section className="max-w-2xl mx-auto px-4 mb-16">
+          <p className="text-center text-xs opacity-40 uppercase tracking-widest mb-4">⏳ Juntos há</p>
+          <div className="grid grid-cols-4 gap-3">
+            {[
+              { valor: contador.dias, label: "dias" },
+              { valor: contador.horas, label: "horas" },
+              { valor: contador.minutos, label: "min" },
+              { valor: contador.segundos, label: "seg" },
+            ].map(({ valor, label }) => (
+              <div key={label} className={`${tema.card} border ${tema.border} rounded-2xl p-4 text-center`}>
+                <p className={`text-3xl font-black tabular-nums ${tema.accent}`}>
+                  {String(valor).padStart(2, "0")}
+                </p>
+                <p className="text-xs opacity-50 uppercase tracking-widest mt-1">{label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* MARCADORES */}
       <section className="max-w-2xl mx-auto px-4 mb-16">
         <div className="grid grid-cols-2 gap-3">
-          {diasJuntos !== null && diasJuntos > 0 && (
-            <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
-              <p className={`text-3xl font-black ${tema.accent}`}>{diasJuntos.toLocaleString("pt-BR")}</p>
-              <p className="text-xs opacity-50 uppercase tracking-widest mt-1">dias juntos</p>
-            </div>
-          )}
+          <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
+            <p className={`text-3xl font-black ${tema.accent}`}>{presente.fotos.length}</p>
+            <p className="text-xs opacity-50 uppercase tracking-widest mt-1">{presente.fotos.length === 1 ? "foto especial" : "fotos especiais"}</p>
+          </div>
           {diasJuntos !== null && diasJuntos > 0 && (
             <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
               <p className={`text-3xl font-black ${tema.accent}`}>{Math.floor(diasJuntos / 30)}</p>
               <p className="text-xs opacity-50 uppercase tracking-widest mt-1">meses juntos</p>
             </div>
           )}
-          <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
-            <p className={`text-3xl font-black ${tema.accent}`}>{presente.fotos.length}</p>
-            <p className="text-xs opacity-50 uppercase tracking-widest mt-1">{presente.fotos.length === 1 ? "foto especial" : "fotos especiais"}</p>
-          </div>
           {presente.dataEspecial && (
-            <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
+            <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center col-span-${diasJuntos !== null && diasJuntos > 0 ? "1" : "2"}`}>
               <p className={`text-lg font-black ${tema.accent}`}>
                 {new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
               </p>
