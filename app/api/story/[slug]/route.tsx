@@ -1,5 +1,7 @@
-import { ImageResponse } from "@vercel/og";
+import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
+
+export const runtime = "edge";
 
 export async function GET(
   req: NextRequest,
@@ -8,26 +10,26 @@ export async function GET(
   const { slug } = await params;
   const origin = new URL(req.url).origin;
 
-  let presente: {
-    nomeRemetente: string;
-    nomeDestinatario: string;
-    mensagem: string;
-    fotos: { url: string }[];
-  } | null = null;
+  let nome = "Você";
+  let remetente = "";
+  let mensagem = "Tenho um presente especial para você ♥";
+  let fotoUrl: string | null = null;
 
   try {
     const res = await fetch(`${origin}/api/presentes/${slug}`);
-    if (res.ok) presente = await res.json();
+    if (res.ok) {
+      const data = await res.json();
+      nome = data.nomeDestinatario ?? nome;
+      remetente = data.nomeRemetente ?? "";
+      mensagem = data.mensagem ?? mensagem;
+      fotoUrl = data.fotos?.[0]?.url ?? null;
+    }
   } catch {
-    // fallback to generic card
+    // usa valores padrão
   }
 
-  const nome = presente?.nomeDestinatario ?? "Você";
-  const remetente = presente?.nomeRemetente ?? "";
-  const mensagem = presente?.mensagem ?? "Tenho um presente especial para você ♥";
-  const fotoUrl = presente?.fotos?.[0]?.url ?? null;
   const mensagemCurta =
-    mensagem.length > 120 ? mensagem.slice(0, 117) + "…" : mensagem;
+    mensagem.length > 100 ? mensagem.slice(0, 97) + "…" : mensagem;
 
   return new ImageResponse(
     (
@@ -35,42 +37,24 @@ export async function GET(
         style={{
           width: "1080px",
           height: "1920px",
-          background: "linear-gradient(160deg, #1a0010 0%, #0a0a0a 40%, #1a0010 100%)",
+          background: "#0d0010",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           fontFamily: "sans-serif",
-          position: "relative",
         }}
       >
-        {/* Glow */}
+        {/* Logo topo */}
         <div
           style={{
-            position: "absolute",
-            top: "180px",
-            left: "190px",
-            width: "700px",
-            height: "700px",
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(232,67,147,0.25) 0%, transparent 70%)",
-          }}
-        />
-
-        {/* Logo */}
-        <div
-          style={{
-            position: "absolute",
-            top: "80px",
             display: "flex",
             alignItems: "center",
-            gap: "16px",
+            marginBottom: "80px",
           }}
         >
-          <span style={{ fontSize: "52px", color: "#e84393" }}>♥</span>
-          <span style={{ fontSize: "44px", color: "white", fontWeight: "bold" }}>
-            LoveGift
-          </span>
+          <span style={{ fontSize: "52px", color: "#e84393", marginRight: "16px" }}>♥</span>
+          <span style={{ fontSize: "48px", color: "white", fontWeight: "bold" }}>LoveGift</span>
         </div>
 
         {/* Foto ou coração */}
@@ -80,8 +64,10 @@ export async function GET(
             height: "520px",
             borderRadius: "32px",
             overflow: "hidden",
-            border: "4px solid rgba(232,67,147,0.5)",
-            marginBottom: "60px",
+            borderWidth: "4px",
+            borderStyle: "solid",
+            borderColor: "rgba(232,67,147,0.5)",
+            marginBottom: "64px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -95,26 +81,33 @@ export async function GET(
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           ) : (
-            <span style={{ fontSize: "200px" }}>♥</span>
+            <span style={{ fontSize: "180px", color: "#e84393" }}>♥</span>
           )}
         </div>
 
         {/* Para */}
-        <div style={{ fontSize: "38px", color: "rgba(255,255,255,0.6)", marginBottom: "16px", letterSpacing: "4px" }}>
+        <div
+          style={{
+            fontSize: "36px",
+            color: "rgba(255,255,255,0.5)",
+            marginBottom: "16px",
+            letterSpacing: "6px",
+          }}
+        >
           PARA
         </div>
 
-        {/* Nome */}
+        {/* Nome destinatário */}
         <div
           style={{
-            fontSize: "96px",
+            fontSize: "88px",
             fontWeight: "bold",
             color: "white",
             marginBottom: "48px",
             textAlign: "center",
-            lineHeight: "1.1",
             paddingLeft: "60px",
             paddingRight: "60px",
+            lineHeight: "1.1",
           }}
         >
           {nome}
@@ -123,49 +116,60 @@ export async function GET(
         {/* Mensagem */}
         <div
           style={{
-            fontSize: "38px",
-            color: "rgba(255,255,255,0.75)",
+            fontSize: "36px",
+            color: "rgba(255,255,255,0.7)",
             textAlign: "center",
-            lineHeight: "1.6",
             paddingLeft: "80px",
             paddingRight: "80px",
-            marginBottom: "40px",
+            marginBottom: "32px",
             fontStyle: "italic",
+            lineHeight: "1.6",
           }}
         >
           "{mensagemCurta}"
         </div>
 
+        {/* Remetente */}
         {remetente ? (
-          <div style={{ fontSize: "36px", color: "#e84393", marginBottom: "80px" }}>
+          <div
+            style={{
+              fontSize: "34px",
+              color: "#e84393",
+              marginBottom: "80px",
+            }}
+          >
             — {remetente} ♥
           </div>
-        ) : null}
+        ) : (
+          <div style={{ marginBottom: "80px" }} />
+        )}
 
-        {/* CTA */}
+        {/* Botão CTA */}
         <div
           style={{
-            position: "absolute",
-            bottom: "100px",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: "16px",
+            marginTop: "40px",
           }}
         >
           <div
             style={{
-              background: "linear-gradient(135deg, #e84393, #c0306f)",
+              background: "#e84393",
               borderRadius: "60px",
-              padding: "28px 80px",
-              fontSize: "42px",
+              paddingTop: "28px",
+              paddingBottom: "28px",
+              paddingLeft: "80px",
+              paddingRight: "80px",
+              fontSize: "40px",
               color: "white",
               fontWeight: "bold",
+              marginBottom: "20px",
             }}
           >
             Abra seu presente ♥
           </div>
-          <div style={{ fontSize: "30px", color: "rgba(255,255,255,0.4)" }}>
+          <div style={{ fontSize: "28px", color: "rgba(255,255,255,0.35)" }}>
             lovegift.com.br
           </div>
         </div>
