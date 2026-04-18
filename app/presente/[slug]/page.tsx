@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import QRCodeLib from "qrcode";
 import { differenceInDays } from "date-fns";
 
@@ -51,6 +51,7 @@ function getYoutubeId(url: string): string | null {
 
 export default function PresentePage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const slug = params.slug as string;
   const [presente, setPresente] = useState<Presente | null>(null);
   const [carregando, setCarregando] = useState(true);
@@ -58,6 +59,17 @@ export default function PresentePage() {
   const [qrCode, setQrCode] = useState("");
   const [aberto, setAberto] = useState(false);
   const slideInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    const pago = searchParams.get("pago");
+    if (pago === "1") {
+      fetch("/api/pagamento/ativar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug }),
+      }).catch(() => {});
+    }
+  }, [slug, searchParams]);
 
   useEffect(() => {
     fetch(`/api/presentes/${slug}`)
