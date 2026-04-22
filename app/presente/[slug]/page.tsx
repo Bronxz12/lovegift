@@ -10,15 +10,6 @@ import Link from "next/link";
 
 type Foto = { id: string; url: string; ordem: number };
 
-function getSpotifyEmbedUrl(url: string): string | null {
-  try {
-    const u = new URL(url);
-    if (!u.hostname.includes("spotify.com")) return null;
-    // /track/ID, /album/ID, /playlist/ID → embed URL
-    const path = u.pathname; // ex: /track/4iV5W9uYEdYUVa79Axb7Rh
-    return `https://open.spotify.com/embed${path}?utm_source=generator&theme=0`;
-  } catch { return null; }
-}
 
 type OcasiaoConfig = {
   emoji: string;
@@ -130,7 +121,6 @@ type Presente = {
   mensagem: string;
   musica: string;
   musicaUrl: string | null;
-  spotifyUrl: string | null;
   tema: string;
   premium: boolean;
   fotos: Foto[];
@@ -535,8 +525,6 @@ export default function PresentePage() {
     );
   }
 
-  const spotifyEmbed = presente.spotifyUrl ? getSpotifyEmbedUrl(presente.spotifyUrl) : null;
-
   return (
     <div className={`min-h-screen ${tema.bg} ${tema.text} pb-28`}>
       {wrappedAberto && (
@@ -769,20 +757,7 @@ export default function PresentePage() {
               </div>
             </div>
           </div>
-          {/* Spotify embed — prioridade se existir */}
-          {spotifyEmbed && (
-            <iframe
-              src={spotifyEmbed}
-              width="100%"
-              height="152"
-              frameBorder="0"
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              loading="lazy"
-              style={{ borderRadius: "0 0 24px 24px" }}
-            />
-          )}
-          {/* YouTube — só mostra se não tiver Spotify */}
-          {!spotifyEmbed && youtubeId && (
+          {youtubeId && (
             <div className="aspect-video">
               <iframe
                 width="100%"
