@@ -255,16 +255,6 @@ export default function CriarPage() {
                   onChange={(e) => set("musicaUrl", e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#e84393]/50 transition-colors" />
               </div>
-              <div className="border-t border-white/10 pt-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">🎧</span>
-                  <label className="block text-sm font-medium text-white/70">Link do Spotify <span className="text-white/30 font-normal">(opcional)</span></label>
-                </div>
-                <input type="url" placeholder="https://open.spotify.com/track/..." value={form.spotifyUrl}
-                  onChange={(e) => set("spotifyUrl", e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#1DB954]/50 transition-colors" />
-                <p className="text-xs text-white/30 mt-1">Cole o link de uma música, álbum ou playlist do Spotify</p>
-              </div>
             </div>
             <div className="flex gap-3">
               <button onClick={() => setEtapa(2)} className="flex-1 border border-white/20 text-white/70 hover:text-white font-semibold py-4 rounded-2xl transition-colors">← Voltar</button>
@@ -351,10 +341,10 @@ export default function CriarPage() {
                 <p className="text-white/70 text-sm">Eleve seu presente para um nível acima com recursos exclusivos:</p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   {[
-                    { icon: "🎧", text: "Spotify embed" },
-                    { icon: "🎬", text: "Vídeo em destaque" },
                     { icon: "📸", text: "Até 30 fotos" },
+                    { icon: "🎬", text: "Vídeo em destaque" },
                     { icon: "✨", text: "Tema Luxo exclusivo" },
+                    { icon: "📖", text: "Wrapped estendido" },
                     { icon: "🔗", text: "Link personalizado" },
                     { icon: "🎁", text: "Moldura premium" },
                   ].map(({ icon, text }) => (
