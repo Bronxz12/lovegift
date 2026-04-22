@@ -9,6 +9,107 @@ import Wrapped from "./Wrapped";
 import Link from "next/link";
 
 type Foto = { id: string; url: string; ordem: number };
+
+type OcasiaoConfig = {
+  emoji: string;
+  cor: string;          // classe tailwind para accent
+  corHex: string;       // hex para inline styles
+  titulo: string;       // frase da abertura
+  subtitulo: string;    // frase secundária
+  confettiCores: string[];
+  timelineInicio: string;
+  timelineHoje: string;
+  contadorLabel: string;
+};
+
+const OCASIAO_CONFIG: Record<string, OcasiaoConfig> = {
+  "Aniversário de namoro": {
+    emoji: "💑", cor: "text-[#e84393]", corHex: "#e84393",
+    titulo: "Feliz aniversário de namoro", subtitulo: "Cada dia ao seu lado é um presente",
+    confettiCores: ["#e84393","#ff6eb4","#ffffff","#c0306f","#ffb3d9"],
+    timelineInicio: "O começo da nossa história", timelineHoje: "Mais um capítulo lindo",
+    contadorLabel: "juntos há",
+  },
+  "Aniversário de casamento": {
+    emoji: "💍", cor: "text-[#f5c518]", corHex: "#f5c518",
+    titulo: "Feliz aniversário de casamento", subtitulo: "Unidos para sempre",
+    confettiCores: ["#f5c518","#fff8dc","#ffffff","#e8b400","#fffacd"],
+    timelineInicio: "O dia em que nos tornamos um", timelineHoje: "Nossa união continua forte",
+    contadorLabel: "casados há",
+  },
+  "Dia dos Namorados": {
+    emoji: "❤️", cor: "text-[#ff4466]", corHex: "#ff4466",
+    titulo: "Feliz Dia dos Namorados", subtitulo: "Você é meu maior presente",
+    confettiCores: ["#ff4466","#ff8099","#ffffff","#cc0033","#ffb3c1"],
+    timelineInicio: "O início da nossa história de amor", timelineHoje: "Celebrando nosso amor",
+    contadorLabel: "juntos há",
+  },
+  "Pedido de namoro": {
+    emoji: "💝", cor: "text-[#e84393]", corHex: "#e84393",
+    titulo: "Quero você comigo", subtitulo: "Para sempre e sempre",
+    confettiCores: ["#e84393","#ff6eb4","#ffffff","#c0306f","#ffb3d9"],
+    timelineInicio: "O momento que tudo mudou", timelineHoje: "O começo da nossa história",
+    contadorLabel: "desde que te conheci",
+  },
+  "Aniversário": {
+    emoji: "🎂", cor: "text-[#a78bfa]", corHex: "#a78bfa",
+    titulo: "Feliz aniversário", subtitulo: "Que esse dia seja tão especial quanto você",
+    confettiCores: ["#a78bfa","#f472b6","#fbbf24","#34d399","#60a5fa"],
+    timelineInicio: "Desde que você chegou ao mundo", timelineHoje: "Mais um ano incrível",
+    contadorLabel: "anos de vida",
+  },
+  "Aniversário de 15 anos": {
+    emoji: "👑", cor: "text-[#f59e0b]", corHex: "#f59e0b",
+    titulo: "Feliz 15 anos, princesa", subtitulo: "Uma vida inteira de conquistas pela frente",
+    confettiCores: ["#f59e0b","#fcd34d","#ffffff","#d97706","#fef3c7"],
+    timelineInicio: "Seu primeiro dia nesse mundo", timelineHoje: "15 anos de pura alegria",
+    contadorLabel: "anos de vida",
+  },
+  "Aniversário de 18 anos": {
+    emoji: "🎉", cor: "text-[#6366f1]", corHex: "#6366f1",
+    titulo: "Feliz 18 anos", subtitulo: "Bem-vindo à liberdade",
+    confettiCores: ["#6366f1","#a78bfa","#f472b6","#fbbf24","#34d399"],
+    timelineInicio: "Seu primeiro dia nesse mundo", timelineHoje: "18 anos de conquistas",
+    contadorLabel: "anos de vida",
+  },
+  "Dia das Mães": {
+    emoji: "🌸", cor: "text-[#f472b6]", corHex: "#f472b6",
+    titulo: "Feliz Dia das Mães", subtitulo: "Obrigado por tudo que você é",
+    confettiCores: ["#f472b6","#fb7185","#ffffff","#ec4899","#fce7f3"],
+    timelineInicio: "Desde que você me deu a vida", timelineHoje: "Sempre ao seu lado",
+    contadorLabel: "anos de amor incondicional",
+  },
+  "Dia dos Pais": {
+    emoji: "💙", cor: "text-[#3b82f6]", corHex: "#3b82f6",
+    titulo: "Feliz Dia dos Pais", subtitulo: "Meu herói de todos os dias",
+    confettiCores: ["#3b82f6","#60a5fa","#ffffff","#1d4ed8","#bfdbfe"],
+    timelineInicio: "Desde que você me mostrou o caminho", timelineHoje: "Sempre meu exemplo",
+    contadorLabel: "anos sendo meu herói",
+  },
+  "Natal": {
+    emoji: "🎄", cor: "text-[#22c55e]", corHex: "#22c55e",
+    titulo: "Feliz Natal", subtitulo: "Que essa data seja cheia de amor",
+    confettiCores: ["#22c55e","#ef4444","#ffffff","#fbbf24","#86efac"],
+    timelineInicio: "Desde o nosso primeiro Natal juntos", timelineHoje: "Mais um Natal especial",
+    contadorLabel: "natais juntos",
+  },
+  "Formatura": {
+    emoji: "🎓", cor: "text-[#8b5cf6]", corHex: "#8b5cf6",
+    titulo: "Parabéns pela formatura", subtitulo: "Você conseguiu — e eu sempre soube",
+    confettiCores: ["#8b5cf6","#a78bfa","#fbbf24","#ffffff","#ede9fe"],
+    timelineInicio: "O primeiro dia de uma grande jornada", timelineHoje: "A conquista de um sonho",
+    contadorLabel: "anos de dedicação",
+  },
+};
+
+const getOcasiaoConfig = (ocasiao: string): OcasiaoConfig =>
+  OCASIAO_CONFIG[ocasiao] ?? {
+    emoji: "♥", cor: "text-[#e84393]", corHex: "#e84393",
+    titulo: "Um presente especial para você", subtitulo: "Com todo o carinho",
+    confettiCores: ["#e84393","#ff6eb4","#ffffff","#c0306f","#ffb3d9"],
+    timelineInicio: "O começo de tudo", timelineHoje: "Mais um capítulo lindo",
+    contadorLabel: "juntos há",
+  };
 type Presente = {
   id: string;
   slug: string;
@@ -114,24 +215,19 @@ export default function PresentePage() {
     };
   }, [presente]);
 
-  // Confetti na abertura
+  // Confetti na abertura (cores personalizadas por ocasião)
   useEffect(() => {
-    if (!aberto) return;
+    if (!aberto || !presente) return;
+    const cfg = getOcasiaoConfig(presente.ocasiao);
     const fire = (angle: number, origin: { x: number; y: number }) => {
-      confetti({
-        particleCount: 60,
-        spread: 55,
-        angle,
-        origin,
-        colors: ["#e84393", "#ff6eb4", "#ffffff", "#c0306f", "#ffb3d9"],
-      });
+      confetti({ particleCount: 60, spread: 55, angle, origin, colors: cfg.confettiCores });
     };
     const t = setTimeout(() => {
       fire(60, { x: 0, y: 0.65 });
       fire(120, { x: 1, y: 0.65 });
     }, 300);
     return () => clearTimeout(t);
-  }, [aberto]);
+  }, [aberto, presente]);
 
   // Contador ao vivo
   useEffect(() => {
@@ -351,6 +447,7 @@ export default function PresentePage() {
   }
 
   const tema = TEMAS[presente.tema] || TEMAS.romantico;
+  const oc = getOcasiaoConfig(presente.ocasiao);
   const diasJuntos = presente.dataEspecial
     ? differenceInDays(new Date(), new Date(presente.dataEspecial))
     : null;
@@ -368,13 +465,14 @@ export default function PresentePage() {
             <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/70 via-[#0a0a0a]/50 to-[#0a0a0a]/85" />
           </>
         )}
-        {/* Partículas de brilho */}
+        {/* Partículas de brilho com cor da ocasião */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="absolute rounded-full bg-[#e84393] opacity-10 animate-pulse"
+              className="absolute rounded-full opacity-10 animate-pulse"
               style={{
+                background: oc.corHex,
                 width: `${80 + i * 40}px`,
                 height: `${80 + i * 40}px`,
                 top: `${10 + i * 15}%`,
@@ -385,20 +483,20 @@ export default function PresentePage() {
             />
           ))}
         </div>
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, rgba(232,67,147,0.15) 0%, transparent 65%)" }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at center, ${oc.corHex}26 0%, transparent 65%)` }} />
 
         <div className="relative max-w-sm mx-auto w-full">
           {/* Badge da ocasião */}
           <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-xs text-white/50 uppercase tracking-widest mb-8">
-            ✨ {presente.ocasiao}
+            {oc.emoji} {presente.ocasiao}
           </div>
 
-          {/* Coração animado */}
+          {/* Emoji animado da ocasião */}
           <div className="relative mb-6">
-            <div className="text-8xl animate-pulse-heart" style={{ filter: "drop-shadow(0 0 40px rgba(232,67,147,0.7))" }}>♥</div>
+            <div className="text-8xl animate-pulse-heart" style={{ filter: `drop-shadow(0 0 40px ${oc.corHex}b3)` }}>{oc.emoji}</div>
           </div>
 
-          <p className="text-white/30 text-xs uppercase tracking-widest mb-2">Um presente especial para</p>
+          <p className="text-white/30 text-xs uppercase tracking-widest mb-2">{oc.titulo}</p>
           <h1 className="text-5xl font-black text-white mb-3 leading-tight">
             {presente.nomeDestinatario}
           </h1>
@@ -448,22 +546,23 @@ export default function PresentePage() {
           </>
         )}
         <div className="relative">
-          <div className="inline-flex items-center gap-2 bg-[#e84393]/10 border border-[#e84393]/20 rounded-full px-4 py-1 text-xs text-[#e84393] uppercase tracking-widest mb-6">
-            {presente.ocasiao}
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1 text-xs uppercase tracking-widest mb-6"
+            style={{ background: `${oc.corHex}1a`, border: `1px solid ${oc.corHex}33`, color: oc.corHex }}>
+            {oc.emoji} {presente.ocasiao}
           </div>
-          <div className={`text-6xl mb-5 animate-pulse-heart ${tema.accent}`} style={{ filter: "drop-shadow(0 0 20px rgba(232,67,147,0.4))" }}>♥</div>
-          <p className="text-sm opacity-40 mb-2 uppercase tracking-widest">Para</p>
+          <div className="text-6xl mb-5 animate-pulse-heart" style={{ filter: `drop-shadow(0 0 20px ${oc.corHex}66)` }}>{oc.emoji}</div>
+          <p className="text-sm opacity-40 mb-2 uppercase tracking-widest">{oc.titulo}</p>
           <h1 className="text-5xl md:text-6xl font-black mb-4 leading-tight">
             {presente.nomeDestinatario}
           </h1>
-          <p className="opacity-40 text-base">Com todo o amor de <span className="opacity-80 font-semibold">{presente.nomeRemetente}</span></p>
+          <p className="opacity-40 text-base">{oc.subtitulo} — <span className="opacity-80 font-semibold">{presente.nomeRemetente}</span></p>
         </div>
       </section>
 
       {/* CONTADOR AO VIVO */}
       {presente.dataEspecial && (
         <section className="max-w-2xl mx-auto px-4 mb-16">
-          <p className="text-center text-xs opacity-40 uppercase tracking-widest mb-4">⏳ Juntos há</p>
+          <p className="text-center text-xs opacity-40 uppercase tracking-widest mb-4">⏳ {oc.contadorLabel}</p>
           <div className="grid grid-cols-4 gap-3">
             {[
               { valor: contador.dias, label: "dias" },
@@ -632,21 +731,21 @@ export default function PresentePage() {
               data: presente.dataEspecial
                 ? new Date(presente.dataEspecial).toLocaleDateString("pt-BR")
                 : "Um dia especial",
-              icon: "💕",
-              titulo: "O começo de tudo",
-              desc: `${presente.nomeRemetente} e ${presente.nomeDestinatario} começaram sua história juntos`,
+              icon: oc.emoji,
+              titulo: oc.timelineInicio,
+              desc: `${presente.nomeRemetente} e ${presente.nomeDestinatario} — ${oc.subtitulo.toLowerCase()}`,
             },
             {
               data: "Hoje",
               icon: "⭐",
-              titulo: "Mais um capítulo lindo",
+              titulo: oc.timelineHoje,
               desc: diasJuntos && diasJuntos > 0
                 ? `São ${diasJuntos.toLocaleString("pt-BR")} dias de amor, crescimento e cumplicidade`
                 : "Cada dia ao seu lado é um presente em si mesmo",
             },
           ].map((item, i) => (
             <div key={i} className="relative mb-10 last:mb-0">
-              <div className="absolute -left-5 w-8 h-8 rounded-full flex items-center justify-center text-base shadow-lg" style={{ background: "linear-gradient(135deg, #e84393, #c0306f)" }}>
+              <div className="absolute -left-5 w-8 h-8 rounded-full flex items-center justify-center text-base shadow-lg" style={{ background: `linear-gradient(135deg, ${oc.corHex}, ${oc.corHex}99)` }}>
                 {item.icon}
               </div>
               <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 ml-4`}>

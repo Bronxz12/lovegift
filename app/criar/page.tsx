@@ -156,7 +156,18 @@ export default function CriarPage() {
                 <select value={form.ocasiao} onChange={(e) => set("ocasiao", e.target.value)}
                   className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#e84393]/50 transition-colors">
                   <option value="">Selecione a ocasião</option>
-                  {["Aniversário de namoro", "Dia dos Namorados", "Aniversário", "Só porque sim", "Pedido de namoro", "Outra"].map(o => <option key={o} value={o}>{o}</option>)}
+                  <optgroup label="💑 Relacionamentos">
+                    {["Aniversário de namoro", "Aniversário de casamento", "Dia dos Namorados", "Pedido de namoro", "Reconciliação"].map(o => <option key={o} value={o}>{o}</option>)}
+                  </optgroup>
+                  <optgroup label="🎂 Aniversários">
+                    {["Aniversário", "Aniversário de 15 anos", "Aniversário de 18 anos"].map(o => <option key={o} value={o}>{o}</option>)}
+                  </optgroup>
+                  <optgroup label="🌸 Datas comemorativas">
+                    {["Dia das Mães", "Dia dos Pais", "Dia das Avós", "Dia dos Avôs", "Natal", "Páscoa", "Dia da Mulher"].map(o => <option key={o} value={o}>{o}</option>)}
+                  </optgroup>
+                  <optgroup label="💝 Outros">
+                    {["Só porque sim", "Formatura", "Novo emprego", "Outra"].map(o => <option key={o} value={o}>{o}</option>)}
+                  </optgroup>
                 </select>
               </div>
               <div>
