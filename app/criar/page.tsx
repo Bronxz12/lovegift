@@ -11,6 +11,7 @@ type FormData = {
   mensagem: string;
   musica: string;
   musicaUrl: string;
+  spotifyUrl: string;
   tema: string;
   email: string;
   fotos: File[];
@@ -30,7 +31,7 @@ export default function CriarPage() {
   const [fotosPreviews, setFotosPreviews] = useState<string[]>([]);
   const [form, setForm] = useState<FormData>({
     nomeRemetente: "", nomeDestinatario: "", ocasiao: "", dataEspecial: "",
-    mensagem: "", musica: "", musicaUrl: "", tema: "romantico", email: "", fotos: [],
+    mensagem: "", musica: "", musicaUrl: "", spotifyUrl: "", tema: "romantico", email: "", fotos: [],
   });
 
   const set = (campo: keyof FormData, valor: string) =>
@@ -86,6 +87,7 @@ export default function CriarPage() {
           mensagem: form.mensagem,
           musica: form.musica,
           musicaUrl: form.musicaUrl || null,
+          spotifyUrl: form.spotifyUrl || null,
           tema: form.tema,
           email: form.email,
           fotos: fotosUrls,
@@ -253,6 +255,16 @@ export default function CriarPage() {
                   onChange={(e) => set("musicaUrl", e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#e84393]/50 transition-colors" />
               </div>
+              <div className="border-t border-white/10 pt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">🎧</span>
+                  <label className="block text-sm font-medium text-white/70">Link do Spotify <span className="text-white/30 font-normal">(opcional)</span></label>
+                </div>
+                <input type="url" placeholder="https://open.spotify.com/track/..." value={form.spotifyUrl}
+                  onChange={(e) => set("spotifyUrl", e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#1DB954]/50 transition-colors" />
+                <p className="text-xs text-white/30 mt-1">Cole o link de uma música, álbum ou playlist do Spotify</p>
+              </div>
             </div>
             <div className="flex gap-3">
               <button onClick={() => setEtapa(2)} className="flex-1 border border-white/20 text-white/70 hover:text-white font-semibold py-4 rounded-2xl transition-colors">← Voltar</button>
@@ -328,13 +340,47 @@ export default function CriarPage() {
               <p className="text-xs text-white/30 mt-2">Pagamento único · Acesso permanente · Sem mensalidade</p>
             </div>
 
+            {/* UPSELL PREMIUM */}
+            <div className="rounded-2xl border-2 border-[#f5c518]/40 overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #1a1500 0%, #0f0f00 100%)" }}>
+              <div className="px-5 py-3 flex items-center gap-2" style={{ background: "linear-gradient(90deg, #f5c518, #e8b400)" }}>
+                <span className="text-lg">👑</span>
+                <span className="font-black text-black text-sm uppercase tracking-wider">UPGRADE PREMIUM — só R$ 9,90 a mais</span>
+              </div>
+              <div className="p-5 space-y-3">
+                <p className="text-white/70 text-sm">Eleve seu presente para um nível acima com recursos exclusivos:</p>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {[
+                    { icon: "🎧", text: "Spotify embed" },
+                    { icon: "🎬", text: "Vídeo em destaque" },
+                    { icon: "📸", text: "Até 30 fotos" },
+                    { icon: "✨", text: "Tema Luxo exclusivo" },
+                    { icon: "🔗", text: "Link personalizado" },
+                    { icon: "🎁", text: "Moldura premium" },
+                  ].map(({ icon, text }) => (
+                    <div key={text} className="flex items-center gap-2 text-white/80">
+                      <span>{icon}</span><span>{text}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <input type="checkbox" id="premium" className="w-4 h-4 accent-[#f5c518]"
+                    onChange={(e) => set("tema", e.target.checked ? "premium" : form.tema === "premium" ? "romantico" : form.tema)} />
+                  <label htmlFor="premium" className="text-sm font-semibold text-[#f5c518] cursor-pointer">
+                    Sim! Quero o Premium por + R$ 9,90
+                  </label>
+                </div>
+              </div>
+            </div>
+
             <div className="flex gap-3">
               <button onClick={() => setEtapa(4)} className="flex-1 border border-white/20 text-white/70 hover:text-white font-semibold py-4 rounded-2xl transition-colors">← Voltar</button>
               <button onClick={finalizar} disabled={!valido() || carregando}
-                className="flex-grow bg-[#e84393] hover:bg-[#c0306f] disabled:opacity-50 text-white font-bold py-4 rounded-2xl transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
+                className="flex-grow disabled:opacity-50 text-white font-bold py-4 rounded-2xl transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+                style={{ background: form.tema === "premium" ? "linear-gradient(135deg, #f5c518, #e8b400)" : "linear-gradient(135deg, #e84393, #c0306f)", color: form.tema === "premium" ? "#000" : "#fff" }}>
                 {carregando ? (
                   <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Processando...</>
-                ) : "Pagar R$ 9,90 →"}
+                ) : form.tema === "premium" ? "👑 Pagar R$ 19,90 (com Premium) →" : "Pagar R$ 9,90 →"}
               </button>
             </div>
 

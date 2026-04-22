@@ -10,6 +10,16 @@ import Link from "next/link";
 
 type Foto = { id: string; url: string; ordem: number };
 
+function getSpotifyEmbedUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (!u.hostname.includes("spotify.com")) return null;
+    // /track/ID, /album/ID, /playlist/ID → embed URL
+    const path = u.pathname; // ex: /track/4iV5W9uYEdYUVa79Axb7Rh
+    return `https://open.spotify.com/embed${path}?utm_source=generator&theme=0`;
+  } catch { return null; }
+}
+
 type OcasiaoConfig = {
   emoji: string;
   cor: string;          // classe tailwind para accent
@@ -120,7 +130,9 @@ type Presente = {
   mensagem: string;
   musica: string;
   musicaUrl: string | null;
+  spotifyUrl: string | null;
   tema: string;
+  premium: boolean;
   fotos: Foto[];
 };
 
@@ -164,6 +176,7 @@ export default function PresentePage() {
   const [aberto, setAberto] = useState(false);
   const [wrappedAberto, setWrappedAberto] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  const [upsellAberto, setUpsellAberto] = useState(false);
   const [contador, setContador] = useState({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
   const slideInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const contadorInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -179,6 +192,9 @@ export default function PresentePage() {
       if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).fbq) {
         (window as unknown as Record<string, (a: string, b: string, c?: Record<string, unknown>) => void>).fbq("track", "Purchase", { value: 9.90, currency: "BRL" });
       }
+      // Mostra upsell premium após 3s (só se não for premium)
+      const t = setTimeout(() => setUpsellAberto(true), 3000);
+      return () => clearTimeout(t);
     }
   }, [slug, searchParams]);
 
@@ -519,10 +535,57 @@ export default function PresentePage() {
     );
   }
 
+  const spotifyEmbed = presente.spotifyUrl ? getSpotifyEmbedUrl(presente.spotifyUrl) : null;
+
   return (
     <div className={`min-h-screen ${tema.bg} ${tema.text} pb-28`}>
       {wrappedAberto && (
         <Wrapped presente={presente} onClose={() => setWrappedAberto(false)} />
+      )}
+
+      {/* MODAL UPSELL PREMIUM */}
+      {upsellAberto && !presente.premium && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}>
+          <div className="w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl"
+            style={{ background: "linear-gradient(160deg, #1a1200 0%, #0a0a0a 100%)", border: "1px solid rgba(245,199,24,0.3)" }}>
+            {/* Header dourado */}
+            <div className="px-6 py-4 text-center" style={{ background: "linear-gradient(135deg, #f5c518, #e8b400)" }}>
+              <div className="text-3xl mb-1">👑</div>
+              <p className="font-black text-black text-lg">Eleve seu presente para Premium!</p>
+              <p className="text-black/70 text-sm">Por apenas <strong>+ R$ 9,90</strong></p>
+            </div>
+            {/* Features */}
+            <div className="p-6 space-y-3">
+              <p className="text-white/60 text-sm text-center mb-4">Seu presente ficou incrível! Quer deixá-lo ainda mais especial?</p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { icon: "🎧", text: "Spotify embed" },
+                  { icon: "📸", text: "Até 30 fotos" },
+                  { icon: "✨", text: "Tema Luxo" },
+                  { icon: "🎬", text: "Vídeo destaque" },
+                  { icon: "🔗", text: "Link personalizado" },
+                  { icon: "🎁", text: "Moldura premium" },
+                ].map(({ icon, text }) => (
+                  <div key={text} className="flex items-center gap-2 text-sm text-white/80 bg-white/5 rounded-xl px-3 py-2">
+                    <span>{icon}</span><span>{text}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="pt-3 space-y-2">
+                <a href={`/premium/${slug}`}
+                  className="block w-full text-center font-black py-4 rounded-2xl text-black transition-all hover:scale-105"
+                  style={{ background: "linear-gradient(135deg, #f5c518, #e8b400)", boxShadow: "0 8px 32px rgba(245,199,24,0.4)" }}>
+                  👑 Quero o Premium — R$ 9,90
+                </a>
+                <button onClick={() => setUpsellAberto(false)}
+                  className="block w-full text-center text-white/40 text-sm py-2 hover:text-white/70 transition-colors">
+                  Não, obrigado
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Botão flutuante Ver História */}
@@ -706,7 +769,20 @@ export default function PresentePage() {
               </div>
             </div>
           </div>
-          {youtubeId && (
+          {/* Spotify embed — prioridade se existir */}
+          {spotifyEmbed && (
+            <iframe
+              src={spotifyEmbed}
+              width="100%"
+              height="152"
+              frameBorder="0"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+              style={{ borderRadius: "0 0 24px 24px" }}
+            />
+          )}
+          {/* YouTube — só mostra se não tiver Spotify */}
+          {!spotifyEmbed && youtubeId && (
             <div className="aspect-video">
               <iframe
                 width="100%"

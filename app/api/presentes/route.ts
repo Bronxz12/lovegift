@@ -12,7 +12,8 @@ function gerarSlug(remetente: string, destinatario: string): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { nomeRemetente, nomeDestinatario, ocasiao, dataEspecial, mensagem, musica, musicaUrl, tema, fotos, email } = body;
+    const { nomeRemetente, nomeDestinatario, ocasiao, dataEspecial, mensagem, musica, musicaUrl, spotifyUrl, tema, fotos, email } = body;
+    const isPremium = tema === "premium";
 
     const slug = gerarSlug(nomeRemetente, nomeDestinatario);
 
@@ -26,7 +27,9 @@ export async function POST(req: NextRequest) {
         mensagem,
         musica,
         musicaUrl: musicaUrl || null,
-        tema: tema || "romantico",
+        spotifyUrl: spotifyUrl || null,
+        tema: isPremium ? "romantico" : (tema || "romantico"),
+        premium: isPremium,
         status: "pendente",
         email: email || null,
         fotos: {

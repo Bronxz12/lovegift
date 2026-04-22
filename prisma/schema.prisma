@@ -20,6 +20,8 @@ model Presente {
   status           String    @default("pendente")
   email            String?
   notificadoEm     DateTime?
+  spotifyUrl       String?
+  premium          Boolean   @default(false)
   paymentId        String?
   fotos            Foto[]
   criadoEm         DateTime  @default(now())
