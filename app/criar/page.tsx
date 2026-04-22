@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 
 type FormData = {
@@ -23,12 +23,19 @@ const TEMAS = [
   { id: "vintage", label: "Vintage", desc: "Fundo creme, tons terrosos", preview: "bg-gradient-to-br from-amber-100 to-orange-100", accent: "text-amber-800" },
 ];
 
+type YTResult = { videoId: string; title: string; channel: string; thumbnail: string; url: string };
+
 export default function CriarPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [etapa, setEtapa] = useState(1);
   const [carregando, setCarregando] = useState(false);
   const [contadorMensagem, setContadorMensagem] = useState(0);
   const [fotosPreviews, setFotosPreviews] = useState<string[]>([]);
+  const [buscaMusica, setBuscaMusica] = useState("");
+  const [buscaResultados, setBuscaResultados] = useState<YTResult[]>([]);
+  const [buscando, setBuscando] = useState(false);
+  const [musicaSelecionada, setMusicaSelecionada] = useState<YTResult | null>(null);
+  const buscaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [form, setForm] = useState<FormData>({
     nomeRemetente: "", nomeDestinatario: "", ocasiao: "", dataEspecial: "",
     mensagem: "", musica: "", musicaUrl: "", spotifyUrl: "", tema: "romantico", email: "", fotos: [],
@@ -36,6 +43,31 @@ export default function CriarPage() {
 
   const set = (campo: keyof FormData, valor: string) =>
     setForm((prev) => ({ ...prev, [campo]: valor }));
+
+  const handleBuscaMusica = (q: string) => {
+    setBuscaMusica(q);
+    if (buscaTimer.current) clearTimeout(buscaTimer.current);
+    if (!q.trim()) { setBuscaResultados([]); return; }
+    buscaTimer.current = setTimeout(async () => {
+      setBuscando(true);
+      try {
+        const res = await fetch(`/api/buscar-musica?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        setBuscaResultados(data.items ?? []);
+      } catch { setBuscaResultados([]); }
+      finally { setBuscando(false); }
+    }, 500);
+  };
+
+  const selecionarMusica = (item: YTResult) => {
+    setMusicaSelecionada(item);
+    set("musica", item.title.replace(/\s*\(.*?\)\s*/g, "").trim());
+    set("musicaUrl", item.url);
+    setBuscaResultados([]);
+    setBuscaMusica("");
+  };
+
+  useEffect(() => () => { if (buscaTimer.current) clearTimeout(buscaTimer.current); }, []);
 
   const adicionarFotos = (arquivos: FileList | null) => {
     if (!arquivos) return;
@@ -236,26 +268,71 @@ export default function CriarPage() {
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold mb-2">A música de vocês 🎵</h1>
-              <p className="text-white/50">Qual é a trilha sonora do relacionamento?</p>
+              <p className="text-white/50">Busque a trilha sonora do relacionamento</p>
             </div>
-            <div className="bg-[#111] rounded-2xl p-5 border border-white/10 space-y-4">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🎵</span>
-                <span className="text-sm text-white/50 font-medium uppercase tracking-widest">Player personalizado</span>
+
+            {/* Música selecionada */}
+            {musicaSelecionada && (
+              <div className="flex items-center gap-3 bg-[#e84393]/10 border border-[#e84393]/30 rounded-2xl p-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={musicaSelecionada.thumbnail} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-[#e84393] uppercase tracking-widest mb-0.5">Selecionada ✓</p>
+                  <p className="font-bold text-white truncate">{musicaSelecionada.title}</p>
+                  <p className="text-xs text-white/40 truncate">{musicaSelecionada.channel}</p>
+                </div>
+                <button onClick={() => { setMusicaSelecionada(null); set("musica", ""); set("musicaUrl", ""); }}
+                  className="text-white/30 hover:text-white text-xl flex-shrink-0">✕</button>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2 text-white/70">Nome da música e artista</label>
-                <input type="text" placeholder="Ex: Perfect - Ed Sheeran" value={form.musica}
-                  onChange={(e) => set("musica", e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#e84393]/50 transition-colors" />
+            )}
+
+            {/* Campo de busca */}
+            <div className="relative">
+              <div className="flex items-center gap-3 bg-[#111] border border-white/10 rounded-2xl px-4 py-3 focus-within:border-[#e84393]/50 transition-colors">
+                <span className="text-xl">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Ex: Perfect Ed Sheeran, Evidências Chitãozinho..."
+                  value={buscaMusica}
+                  onChange={(e) => handleBuscaMusica(e.target.value)}
+                  className="flex-1 bg-transparent text-white placeholder-white/30 focus:outline-none"
+                />
+                {buscando && <div className="w-4 h-4 border-2 border-[#e84393]/30 border-t-[#e84393] rounded-full animate-spin flex-shrink-0" />}
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2 text-white/70">Link do YouTube <span className="text-white/30 font-normal">(opcional)</span></label>
-                <input type="url" placeholder="https://youtube.com/watch?v=..." value={form.musicaUrl}
-                  onChange={(e) => set("musicaUrl", e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#e84393]/50 transition-colors" />
-              </div>
+
+              {/* Resultados */}
+              {buscaResultados.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-[#111] border border-white/10 rounded-2xl overflow-hidden z-20 shadow-2xl">
+                  {buscaResultados.map((item) => (
+                    <button
+                      key={item.videoId}
+                      onClick={() => selecionarMusica(item)}
+                      className="w-full flex items-center gap-3 p-3 hover:bg-white/5 transition-colors text-left border-b border-white/5 last:border-0"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.thumbnail} alt="" className="w-16 h-12 rounded-lg object-cover flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{item.title}</p>
+                        <p className="text-xs text-white/40 truncate">{item.channel}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+
+            <p className="text-center text-white/20 text-xs">ou cole o link direto</p>
+
+            {/* Fallback manual */}
+            <div className="space-y-3">
+              <input type="text" placeholder="Nome da música (ex: Perfect - Ed Sheeran)" value={form.musica}
+                onChange={(e) => { set("musica", e.target.value); setMusicaSelecionada(null); }}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#e84393]/50 transition-colors text-sm" />
+              <input type="url" placeholder="https://youtube.com/watch?v=..." value={form.musicaUrl}
+                onChange={(e) => { set("musicaUrl", e.target.value); setMusicaSelecionada(null); }}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#e84393]/50 transition-colors text-sm" />
+            </div>
+
             <div className="flex gap-3">
               <button onClick={() => setEtapa(2)} className="flex-1 border border-white/20 text-white/70 hover:text-white font-semibold py-4 rounded-2xl transition-colors">← Voltar</button>
               <button onClick={() => valido() && setEtapa(4)} disabled={!valido()}
