@@ -4,12 +4,18 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const { slug } = await req.json();
+    const { slug, premium } = await req.json();
 
     const presente = await prisma.presente.findUnique({ where: { slug } });
     if (!presente) {
       return NextResponse.json({ error: "Presente não encontrado" }, { status: 404 });
     }
+
+    const isPremium = premium || presente.premium || false;
+    const preco = isPremium ? 19.9 : 9.9;
+    const titulo = isPremium
+      ? `LoveGift Premium — Presente para ${presente.nomeDestinatario}`
+      : `LoveGift — Presente para ${presente.nomeDestinatario}`;
 
     const client = new MercadoPago({
       accessToken: process.env.MP_ACCESS_TOKEN!,
@@ -23,9 +29,9 @@ export async function POST(req: NextRequest) {
         items: [
           {
             id: slug,
-            title: `LoveGift — Presente para ${presente.nomeDestinatario}`,
+            title: titulo,
             quantity: 1,
-            unit_price: 9.9,
+            unit_price: preco,
             currency_id: "BRL",
           },
         ],
