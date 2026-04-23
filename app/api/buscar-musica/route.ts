@@ -2,35 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   const q = new URL(req.url).searchParams.get("q");
-  if (!q) return NextResponse.json({ items: [] });
+  if (!q || q.trim().length < 2) return NextResponse.json({ items: [] });
 
-  const key = process.env.YOUTUBE_API_KEY;
-  if (!key) return NextResponse.json({ error: "API key não configurada" }, { status: 500 });
-
-  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=6&q=${encodeURIComponent(q)}&key=${key}`;
+  // Usa iTunes Search API — gratuita, sem chave, sem limite
+  const url = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=song&limit=8&country=BR`;
 
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { next: { revalidate: 0 } });
     const data = await res.json();
 
-    // Se a API retornou erro, repassa para debug
-    if (data.error) {
-      return NextResponse.json({ error: data.error.message, details: data.error }, { status: 400 });
-    }
-
-    const items = (data.items ?? []).map((item: {
-      id: { videoId: string };
-      snippet: {
-        title: string;
-        channelTitle: string;
-        thumbnails: { medium: { url: string } };
-      };
+    const items = (data.results ?? []).map((track: {
+      trackId: number;
+      trackName: string;
+      artistName: string;
+      artworkUrl100: string;
+      previewUrl?: string;
+      trackViewUrl?: string;
     }) => ({
-      videoId: item.id.videoId,
-      title: item.snippet.title,
-      channel: item.snippet.channelTitle,
-      thumbnail: item.snippet.thumbnails.medium.url,
-      url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+      videoId: String(track.trackId),
+      title: `${track.trackName} — ${track.artistName}`,
+      channel: track.artistName,
+      thumbnail: track.artworkUrl100?.replace("100x100", "300x300") ?? "",
+      url: track.trackViewUrl ?? `https://music.apple.com/search?term=${encodeURIComponent(track.trackName)}`,
+      previewUrl: track.previewUrl ?? null,
     }));
 
     return NextResponse.json({ items });
