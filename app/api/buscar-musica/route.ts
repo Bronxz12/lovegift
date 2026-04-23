@@ -13,6 +13,11 @@ export async function GET(req: NextRequest) {
     const res = await fetch(url);
     const data = await res.json();
 
+    // Se a API retornou erro, repassa para debug
+    if (data.error) {
+      return NextResponse.json({ error: data.error.message, details: data.error }, { status: 400 });
+    }
+
     const items = (data.items ?? []).map((item: {
       id: { videoId: string };
       snippet: {
