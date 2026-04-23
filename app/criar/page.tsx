@@ -11,10 +11,11 @@ type FormData = {
   mensagem: string;
   musica: string;
   musicaUrl: string;
-  spotifyUrl: string;
   tema: string;
+  moldura: string;
   email: string;
   fotos: File[];
+  premium: boolean;
 };
 
 const TEMAS = [
@@ -23,10 +24,20 @@ const TEMAS = [
   { id: "vintage", label: "Vintage", desc: "Fundo creme, tons terrosos", preview: "bg-gradient-to-br from-amber-100 to-orange-100", accent: "text-amber-800" },
 ];
 
+const MOLDURAS = [
+  { id: "nenhuma", label: "Sem moldura", emoji: "⬜", desc: "Fotos limpas, sem borda" },
+  { id: "dourada", label: "Dourada", emoji: "✨", desc: "Moldura dourada elegante" },
+  { id: "rosas", label: "Rosas", emoji: "🌹", desc: "Pétalas de rosa delicadas" },
+  { id: "coracao", label: "Coração", emoji: "💖", desc: "Bordas em formato de coração" },
+  { id: "vintage", label: "Vintage", emoji: "🎞️", desc: "Estilo fotografia antiga" },
+  { id: "luxo", label: "Luxo", emoji: "👑", desc: "Detalhes dourados premium" },
+];
+
 type YTResult = { videoId: string; title: string; channel: string; thumbnail: string; url: string };
 
 export default function CriarPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputPremiumRef = useRef<HTMLInputElement>(null);
   const [etapa, setEtapa] = useState(1);
   const [carregando, setCarregando] = useState(false);
   const [contadorMensagem, setContadorMensagem] = useState(0);
@@ -38,10 +49,13 @@ export default function CriarPage() {
   const buscaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [form, setForm] = useState<FormData>({
     nomeRemetente: "", nomeDestinatario: "", ocasiao: "", dataEspecial: "",
-    mensagem: "", musica: "", musicaUrl: "", spotifyUrl: "", tema: "romantico", email: "", fotos: [],
+    mensagem: "", musica: "", musicaUrl: "", tema: "romantico", moldura: "nenhuma",
+    email: "", fotos: [], premium: false,
   });
 
-  const set = (campo: keyof FormData, valor: string) =>
+  const totalEtapas = form.premium ? 6 : 5;
+
+  const set = (campo: keyof FormData, valor: string | boolean) =>
     setForm((prev) => ({ ...prev, [campo]: valor }));
 
   const handleBuscaMusica = (q: string) => {
@@ -69,9 +83,11 @@ export default function CriarPage() {
 
   useEffect(() => () => { if (buscaTimer.current) clearTimeout(buscaTimer.current); }, []);
 
+  const maxFotos = form.premium ? 30 : 20;
+
   const adicionarFotos = (arquivos: FileList | null) => {
     if (!arquivos) return;
-    const novas = Array.from(arquivos).slice(0, 20 - form.fotos.length);
+    const novas = Array.from(arquivos).slice(0, maxFotos - form.fotos.length);
     setForm((prev) => ({ ...prev, fotos: [...prev.fotos, ...novas] }));
     novas.forEach((file) => {
       const reader = new FileReader();
@@ -91,13 +107,22 @@ export default function CriarPage() {
     if (etapa === 3) return !!form.musica;
     if (etapa === 4) return true;
     if (etapa === 5) return !!form.email;
+    if (etapa === 6) return true;
     return true;
+  };
+
+  const avancarEtapa5 = () => {
+    if (!valido()) return;
+    if (form.premium) {
+      setEtapa(6); // vai para etapa premium
+    } else {
+      finalizar();
+    }
   };
 
   const finalizar = async () => {
     setCarregando(true);
     try {
-      // 1. Upload das fotos
       const fotosUrls: string[] = [];
       for (const foto of form.fotos) {
         const fd = new FormData();
@@ -107,7 +132,6 @@ export default function CriarPage() {
         fotosUrls.push(data.url);
       }
 
-      // 2. Salva o presente
       const res = await fetch("/api/presentes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,27 +143,25 @@ export default function CriarPage() {
           mensagem: form.mensagem,
           musica: form.musica,
           musicaUrl: form.musicaUrl || null,
-          spotifyUrl: form.spotifyUrl || null,
-          tema: form.tema,
+          tema: form.premium ? "premium" : form.tema,
+          moldura: form.moldura,
           email: form.email,
           fotos: fotosUrls,
+          premium: form.premium,
         }),
       });
       const { slug } = await res.json();
 
-      // 3. Cria preferência de pagamento
       const pagRes = await fetch("/api/pagamento/criar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug }),
+        body: JSON.stringify({ slug, premium: form.premium }),
       });
       const pagData = await pagRes.json();
 
-      // 4. Redireciona para o Mercado Pago
       if (pagData.url) {
         window.location.href = pagData.url;
       } else {
-        // Sem MP configurado — mostra preview direto (modo dev)
         window.location.href = `/presente/${slug}`;
       }
     } catch (err) {
@@ -149,6 +171,8 @@ export default function CriarPage() {
     }
   };
 
+  const preco = form.premium ? "R$ 19,90" : "R$ 9,90";
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       {/* Header */}
@@ -156,12 +180,15 @@ export default function CriarPage() {
         <Link href="/" className="flex items-center gap-2 font-bold text-lg">
           <span className="text-[#e84393]">♥</span> LoveGift
         </Link>
-        {etapa <= 5 && <span className="text-sm text-white/40">Etapa {etapa} de 5</span>}
+        {etapa <= totalEtapas && (
+          <span className="text-sm text-white/40">Etapa {etapa} de {totalEtapas}</span>
+        )}
       </div>
 
       {/* Barra de progresso */}
       <div className="h-1 bg-white/10">
-        <div className="h-full bg-[#e84393] transition-all duration-500" style={{ width: `${(Math.min(etapa, 5) / 5) * 100}%` }} />
+        <div className="h-full bg-[#e84393] transition-all duration-500"
+          style={{ width: `${(Math.min(etapa, totalEtapas) / totalEtapas) * 100}%` }} />
       </div>
 
       <div className="max-w-xl mx-auto px-4 py-12">
@@ -230,7 +257,7 @@ export default function CriarPage() {
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold mb-2">Adicione as fotos 📸</h1>
-              <p className="text-white/50">Escolha de 1 a 20 fotos especiais de vocês</p>
+              <p className="text-white/50">Escolha de 1 a {maxFotos} fotos especiais de vocês</p>
             </div>
             <div onClick={() => fileInputRef.current?.click()}
               onDragOver={(e) => e.preventDefault()}
@@ -239,7 +266,7 @@ export default function CriarPage() {
               <div className="text-5xl mb-3">📷</div>
               <p className="font-semibold mb-1">Clique ou arraste as fotos aqui</p>
               <p className="text-sm text-white/40">JPG, PNG, WEBP · Máx. 5MB por foto</p>
-              <p className="text-sm text-[#e84393] mt-2">{form.fotos.length} de 20 fotos adicionadas</p>
+              <p className="text-sm text-[#e84393] mt-2">{form.fotos.length} de {maxFotos} fotos adicionadas</p>
             </div>
             <input ref={fileInputRef} type="file" multiple accept="image/jpeg,image/png,image/webp"
               onChange={(e) => adicionarFotos(e.target.files)} className="hidden" />
@@ -271,7 +298,6 @@ export default function CriarPage() {
               <p className="text-white/50">Busque a trilha sonora do relacionamento</p>
             </div>
 
-            {/* Música selecionada */}
             {musicaSelecionada && (
               <div className="flex items-center gap-3 bg-[#e84393]/10 border border-[#e84393]/30 rounded-2xl p-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -286,7 +312,6 @@ export default function CriarPage() {
               </div>
             )}
 
-            {/* Campo de busca */}
             <div className="relative">
               <div className="flex items-center gap-3 bg-[#111] border border-white/10 rounded-2xl px-4 py-3 focus-within:border-[#e84393]/50 transition-colors">
                 <span className="text-xl">🔍</span>
@@ -300,7 +325,6 @@ export default function CriarPage() {
                 {buscando && <div className="w-4 h-4 border-2 border-[#e84393]/30 border-t-[#e84393] rounded-full animate-spin flex-shrink-0" />}
               </div>
 
-              {/* Resultados */}
               {buscaResultados.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-[#111] border border-white/10 rounded-2xl overflow-hidden z-20 shadow-2xl">
                   {buscaResultados.map((item) => (
@@ -323,7 +347,6 @@ export default function CriarPage() {
 
             <p className="text-center text-white/20 text-xs">ou cole o link direto</p>
 
-            {/* Fallback manual */}
             <div className="space-y-3">
               <input type="text" placeholder="Nome da música (ex: Perfect - Ed Sheeran)" value={form.musica}
                 onChange={(e) => { set("musica", e.target.value); setMusicaSelecionada(null); }}
@@ -373,7 +396,7 @@ export default function CriarPage() {
           </div>
         )}
 
-        {/* ETAPA 5 — E-mail e Pagamento */}
+        {/* ETAPA 5 — E-mail e resumo */}
         {etapa === 5 && (
           <div className="space-y-6">
             <div>
@@ -402,13 +425,14 @@ export default function CriarPage() {
               </div>
               <div className="border-t border-white/10 pt-4 flex justify-between items-center">
                 <span className="font-bold text-lg">Total</span>
-                <span className="text-2xl font-bold text-[#e84393]">R$ 9,90</span>
+                <span className="text-2xl font-bold" style={{ color: form.premium ? "#f5c518" : "#e84393" }}>{preco}</span>
               </div>
               <p className="text-xs text-white/30 mt-2">Pagamento único · Acesso permanente · Sem mensalidade</p>
             </div>
 
             {/* UPSELL PREMIUM */}
-            <div className="rounded-2xl border-2 border-[#f5c518]/40 overflow-hidden"
+            <div
+              className={`rounded-2xl border-2 overflow-hidden transition-all ${form.premium ? "border-[#f5c518]" : "border-[#f5c518]/40"}`}
               style={{ background: "linear-gradient(135deg, #1a1500 0%, #0f0f00 100%)" }}>
               <div className="px-5 py-3 flex items-center gap-2" style={{ background: "linear-gradient(90deg, #f5c518, #e8b400)" }}>
                 <span className="text-lg">👑</span>
@@ -419,11 +443,11 @@ export default function CriarPage() {
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   {[
                     { icon: "📸", text: "Até 30 fotos" },
-                    { icon: "🎬", text: "Vídeo em destaque" },
+                    { icon: "🖼️", text: "Moldura exclusiva" },
                     { icon: "✨", text: "Tema Luxo exclusivo" },
                     { icon: "📖", text: "Wrapped estendido" },
                     { icon: "🔗", text: "Link personalizado" },
-                    { icon: "🎁", text: "Moldura premium" },
+                    { icon: "🎁", text: "Visual premium" },
                   ].map(({ icon, text }) => (
                     <div key={text} className="flex items-center gap-2 text-white/80">
                       <span>{icon}</span><span>{text}</span>
@@ -431,29 +455,162 @@ export default function CriarPage() {
                   ))}
                 </div>
                 <div className="flex items-center gap-2 pt-1">
-                  <input type="checkbox" id="premium" className="w-4 h-4 accent-[#f5c518]"
-                    onChange={(e) => set("tema", e.target.checked ? "premium" : form.tema === "premium" ? "romantico" : form.tema)} />
+                  <input
+                    type="checkbox"
+                    id="premium"
+                    checked={form.premium}
+                    className="w-4 h-4 accent-[#f5c518]"
+                    onChange={(e) => set("premium", e.target.checked)}
+                  />
                   <label htmlFor="premium" className="text-sm font-semibold text-[#f5c518] cursor-pointer">
                     Sim! Quero o Premium por + R$ 9,90
                   </label>
                 </div>
+                {form.premium && (
+                  <p className="text-xs text-[#f5c518]/70">
+                    ✨ Na próxima etapa você escolhe moldura, tema e adiciona mais fotos!
+                  </p>
+                )}
               </div>
             </div>
 
             <div className="flex gap-3">
               <button onClick={() => setEtapa(4)} className="flex-1 border border-white/20 text-white/70 hover:text-white font-semibold py-4 rounded-2xl transition-colors">← Voltar</button>
-              <button onClick={finalizar} disabled={!valido() || carregando}
+              <button onClick={avancarEtapa5} disabled={!valido() || carregando}
                 className="flex-grow disabled:opacity-50 text-white font-bold py-4 rounded-2xl transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
-                style={{ background: form.tema === "premium" ? "linear-gradient(135deg, #f5c518, #e8b400)" : "linear-gradient(135deg, #e84393, #c0306f)", color: form.tema === "premium" ? "#000" : "#fff" }}>
+                style={{
+                  background: form.premium
+                    ? "linear-gradient(135deg, #f5c518, #e8b400)"
+                    : "linear-gradient(135deg, #e84393, #c0306f)",
+                  color: form.premium ? "#000" : "#fff"
+                }}>
                 {carregando ? (
                   <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Processando...</>
-                ) : form.tema === "premium" ? "👑 Pagar R$ 19,90 (com Premium) →" : "Pagar R$ 9,90 →"}
+                ) : form.premium
+                  ? "👑 Personalizar Premium →"
+                  : `Pagar R$ 9,90 →`}
               </button>
             </div>
 
             <p className="text-center text-xs text-white/20">🔒 Pagamento seguro via Mercado Pago</p>
           </div>
         )}
+
+        {/* ETAPA 6 — Personalização Premium */}
+        {etapa === 6 && (
+          <div className="space-y-6">
+            {/* Badge premium */}
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full w-fit"
+              style={{ background: "linear-gradient(90deg, #f5c518, #e8b400)" }}>
+              <span>👑</span>
+              <span className="text-black font-bold text-sm">Personalização Premium</span>
+            </div>
+
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Deixe incrível! ✨</h1>
+              <p className="text-white/50">Escolha os detalhes exclusivos do seu presente</p>
+            </div>
+
+            {/* Mais fotos */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-lg">📸 Mais fotos</h3>
+                <span className="text-sm text-[#f5c518]">{form.fotos.length}/30 fotos</span>
+              </div>
+              <p className="text-white/40 text-sm">Você já adicionou {form.fotos.length} foto{form.fotos.length !== 1 ? "s" : ""}. Quer adicionar mais?</p>
+              {form.fotos.length < 30 && (
+                <button onClick={() => fileInputPremiumRef.current?.click()}
+                  className="w-full border-2 border-dashed border-[#f5c518]/40 rounded-2xl py-4 text-[#f5c518] hover:border-[#f5c518]/70 transition-colors font-semibold">
+                  + Adicionar mais fotos ({30 - form.fotos.length} disponíveis)
+                </button>
+              )}
+              <input ref={fileInputPremiumRef} type="file" multiple accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => adicionarFotos(e.target.files)} className="hidden" />
+              {fotosPreviews.length > 0 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {fotosPreviews.map((src, i) => (
+                    <div key={i} className="relative aspect-square rounded-xl overflow-hidden group">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt="" className="w-full h-full object-cover" />
+                      <button onClick={() => removerFoto(i)}
+                        className="absolute top-1 right-1 w-5 h-5 bg-black/70 rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-white/10" />
+
+            {/* Moldura */}
+            <div className="space-y-3">
+              <h3 className="font-bold text-lg">🖼️ Moldura das fotos</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {MOLDURAS.map((m) => (
+                  <button key={m.id} onClick={() => set("moldura", m.id)}
+                    className={`text-left rounded-2xl border-2 p-4 transition-all ${form.moldura === m.id ? "border-[#f5c518] bg-[#f5c518]/10" : "border-white/10 hover:border-white/30"}`}>
+                    <div className="text-2xl mb-1">{m.emoji}</div>
+                    <p className="font-semibold text-sm">{m.label}</p>
+                    <p className="text-xs text-white/40">{m.desc}</p>
+                    {form.moldura === m.id && (
+                      <div className="mt-2 w-5 h-5 rounded-full flex items-center justify-center text-xs" style={{ background: "#f5c518", color: "#000" }}>✓</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-white/10" />
+
+            {/* Tema Luxo */}
+            <div className="space-y-3">
+              <h3 className="font-bold text-lg">✨ Tema</h3>
+              <div className="space-y-3">
+                {/* Tema Luxo exclusivo */}
+                <button onClick={() => set("tema", "luxo")}
+                  className={`w-full text-left rounded-2xl border-2 overflow-hidden transition-all ${form.tema === "luxo" ? "border-[#f5c518] scale-[1.02]" : "border-[#f5c518]/30 hover:border-[#f5c518]/60"}`}>
+                  <div className="h-20 flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1a1200, #2d2000, #1a1200)" }}>
+                    <span className="text-2xl font-bold" style={{ color: "#f5c518" }}>👑 Luxo</span>
+                  </div>
+                  <div className="bg-[#f5c518]/5 px-4 py-3 flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-sm text-[#f5c518]">Luxo <span className="text-xs text-[#f5c518]/60 ml-1">EXCLUSIVO PREMIUM</span></p>
+                      <p className="text-xs text-white/40">Fundo escuro com detalhes dourados</p>
+                    </div>
+                    {form.tema === "luxo" && <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs" style={{ background: "#f5c518", color: "#000" }}>✓</div>}
+                  </div>
+                </button>
+                {/* Outros temas */}
+                {TEMAS.map((tema) => (
+                  <button key={tema.id} onClick={() => set("tema", tema.id)}
+                    className={`w-full text-left rounded-2xl border-2 overflow-hidden transition-all ${form.tema === tema.id ? "border-[#f5c518] scale-[1.02]" : "border-white/10 hover:border-white/30"}`}>
+                    <div className={`${tema.preview} h-14 flex items-center justify-center`}>
+                      <span className={`text-xl font-bold ${tema.accent}`}>♥ {tema.label}</span>
+                    </div>
+                    <div className="bg-white/5 px-4 py-2 flex items-center justify-between">
+                      <p className="font-semibold text-sm">{tema.label}</p>
+                      {form.tema === tema.id && <div className="w-5 h-5 rounded-full bg-[#e84393] flex items-center justify-center text-xs">✓</div>}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setEtapa(5)} className="flex-1 border border-white/20 text-white/70 hover:text-white font-semibold py-4 rounded-2xl transition-colors">← Voltar</button>
+              <button onClick={finalizar} disabled={carregando}
+                className="flex-grow disabled:opacity-50 font-bold py-4 rounded-2xl transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+                style={{ background: "linear-gradient(135deg, #f5c518, #e8b400)", color: "#000" }}>
+                {carregando ? (
+                  <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />Processando...</>
+                ) : "👑 Pagar R$ 19,90 e criar presente →"}
+              </button>
+            </div>
+
+            <p className="text-center text-xs text-white/20">🔒 Pagamento seguro via Mercado Pago</p>
+          </div>
+        )}
+
       </div>
     </div>
   );
