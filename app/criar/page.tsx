@@ -83,7 +83,7 @@ export default function CriarPage() {
 
   useEffect(() => () => { if (buscaTimer.current) clearTimeout(buscaTimer.current); }, []);
 
-  const maxFotos = form.premium ? 30 : 20;
+  const maxFotos = form.premium ? 30 : 10;
 
   const adicionarFotos = (arquivos: FileList | null) => {
     if (!arquivos) return;
@@ -442,7 +442,7 @@ export default function CriarPage() {
                 <p className="text-white/70 text-sm">Eleve seu presente para um nível acima com recursos exclusivos:</p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   {[
-                    { icon: "📸", text: "Até 30 fotos" },
+                    { icon: "📸", text: "Até 30 fotos (vs 10)" },
                     { icon: "🖼️", text: "Moldura exclusiva" },
                     { icon: "✨", text: "Tema Luxo exclusivo" },
                     { icon: "📖", text: "Wrapped estendido" },
