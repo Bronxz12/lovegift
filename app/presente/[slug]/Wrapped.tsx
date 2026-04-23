@@ -213,13 +213,18 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
   const slide = slides[current];
 
   return (
-    <div className="fixed inset-0 z-50 select-none overflow-hidden bg-black"
+    /* Overlay escuro atrás do story */
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
       onClick={e => handleTap(e.clientX)}
       onTouchEnd={e => handleTap(e.changedTouches[0].clientX)}
       onMouseDown={() => setPaused(true)}
       onMouseUp={() => setPaused(false)}
       onTouchStart={() => setPaused(true)}
     >
+      {/* Container story — largura máxima de celular */}
+      <div className="relative w-full h-full select-none overflow-hidden"
+        style={{ maxWidth: "430px", maxHeight: "100vh" }}>
+
       {/* ── Progress bars ── */}
       <div className="absolute top-0 left-0 right-0 z-20 flex gap-1 px-3 pt-3">
         {slides.map((_, i) => (
@@ -580,6 +585,7 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
         )}
 
       </div>
+      </div> {/* fim container story */}
     </div>
   );
 }
