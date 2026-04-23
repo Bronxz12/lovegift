@@ -423,9 +423,21 @@ export default function CriarPage() {
                 <div className="flex justify-between"><span>Fotos</span><span className="text-white">{form.fotos.length} fotos</span></div>
                 <div className="flex justify-between"><span>Tema</span><span className="text-white capitalize">{form.tema}</span></div>
               </div>
-              <div className="border-t border-white/10 pt-4 flex justify-between items-center">
-                <span className="font-bold text-lg">Total</span>
-                <span className="text-2xl font-bold" style={{ color: form.premium ? "#f5c518" : "#e84393" }}>{preco}</span>
+              <div className="border-t border-white/10 pt-4 space-y-2">
+                <div className="flex justify-between text-sm text-white/60">
+                  <span>Presente digital</span>
+                  <span>R$ 9,90</span>
+                </div>
+                {form.premium && (
+                  <div className="flex justify-between text-sm" style={{ color: "#f5c518" }}>
+                    <span>👑 Upgrade Premium</span>
+                    <span>+ R$ 9,90</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-2 border-t border-white/10">
+                  <span className="font-bold text-lg">Total</span>
+                  <span className="text-2xl font-bold" style={{ color: form.premium ? "#f5c518" : "#e84393" }}>{preco}</span>
+                </div>
               </div>
               <p className="text-xs text-white/30 mt-2">Pagamento único · Acesso permanente · Sem mensalidade</p>
             </div>
