@@ -177,8 +177,13 @@ export default function CriarPage() {
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       {/* Header */}
       <div className="border-b border-white/10 px-4 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-          <span className="text-[#e84393]">♥</span> LoveGift
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-xl flex items-center justify-center text-sm"
+            style={{ background: "linear-gradient(135deg, #e84393, #c0306f)" }}>🌸</div>
+          <span className="text-lg font-black">
+            <span style={{ background: "linear-gradient(135deg, #e84393, #ff6eb4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Love</span>
+            <span className="text-white">Gift</span>
+          </span>
         </Link>
         {etapa <= totalEtapas && (
           <span className="text-sm text-white/40">Etapa {etapa} de {totalEtapas}</span>

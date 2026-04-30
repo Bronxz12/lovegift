@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
 
 const depoimentos = [
   { nome: "Lucas R.", texto: "Minha mãe chorou do começo ao fim. Ela disse que foi o presente mais bonito que já recebeu na vida.", avatar: "LR", cor: "bg-pink-600" },
@@ -24,94 +25,132 @@ const faqs = [
   { q: "E se eu não ficar satisfeito?", r: "Garantia de 7 dias. Se não ficar satisfeito com o resultado, devolvemos 100% do seu dinheiro sem perguntas." },
 ];
 
-function useCountUp(target: number, duration = 2000) {
-  const [count, setCount] = useState(0);
+function useCountdown(targetDate: Date) {
+  const [timeLeft, setTimeLeft] = useState({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
   useEffect(() => {
-    const steps = 60;
-    const increment = target / steps;
-    let current = 0;
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) { setCount(target); clearInterval(timer); }
-      else setCount(Math.floor(current));
-    }, duration / steps);
-    return () => clearInterval(timer);
-  }, [target, duration]);
-  return count;
+    const update = () => {
+      const diff = targetDate.getTime() - Date.now();
+      if (diff <= 0) { setTimeLeft({ dias: 0, horas: 0, minutos: 0, segundos: 0 }); return; }
+      const dias = Math.floor(diff / 86400000);
+      const horas = Math.floor((diff % 86400000) / 3600000);
+      const minutos = Math.floor((diff % 3600000) / 60000);
+      const segundos = Math.floor((diff % 60000) / 1000);
+      setTimeLeft({ dias, horas, minutos, segundos });
+    };
+    update();
+    const t = setInterval(update, 1000);
+    return () => clearInterval(t);
+  }, [targetDate]);
+  return timeLeft;
 }
 
 export default function Home() {
   const [faqAberto, setFaqAberto] = useState<number | null>(null);
-  const count = useCountUp(50000, 2000);
+  const diasMaes = useRef(new Date("2026-05-10T00:00:00")).current;
+  const countdown = useCountdown(diasMaes);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
 
-      {/* URGENCY BANNER */}
-      <div className="bg-gradient-to-r from-[#e84393] via-[#c0306f] to-[#e84393] text-white text-center py-2.5 px-4 text-sm font-semibold animate-pulse-slow">
-        🌸 Dia das Mães — <strong>10 de maio</strong> · Crie agora por <strong>R$ 9,90</strong> e surpreenda sua mãe ♥
-      </div>
-
       {/* NAVBAR */}
-      <nav className="sticky top-0 left-0 right-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-md border-b border-white/5">
+      <nav className="sticky top-0 left-0 right-0 z-50 bg-[#050508]/95 backdrop-blur-md border-b border-white/5">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-            <span className="text-[#e84393]">♥</span>
-            <span>LoveGift</span>
+          {/* Logo redesenhado */}
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, #e84393, #c0306f)", boxShadow: "0 4px 12px rgba(232,67,147,0.4)" }}>
+              🌸
+            </div>
+            <span className="text-xl font-black tracking-tight">
+              <span style={{ background: "linear-gradient(135deg, #e84393, #ff6eb4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Love</span>
+              <span className="text-white">Gift</span>
+            </span>
           </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
+          <div className="hidden md:flex items-center gap-8 text-sm text-white/50">
             <a href="#como-funciona" className="hover:text-white transition-colors">Como Funciona</a>
             <a href="#precos" className="hover:text-white transition-colors">Preços</a>
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
           </div>
           <Link href="/criar"
-            className="text-white text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:scale-105"
-            style={{ background: "linear-gradient(135deg, #e84393, #c0306f)", boxShadow: "0 4px 16px rgba(232,67,147,0.3)" }}>
+            className="text-white text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:scale-105 hover:shadow-lg"
+            style={{ background: "linear-gradient(135deg, #e84393, #c0306f)", boxShadow: "0 4px 16px rgba(232,67,147,0.35)" }}>
             Criar presente →
           </Link>
         </div>
       </nav>
 
       {/* HERO */}
-      <section className="pt-24 pb-20 px-4 text-center relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none" style={{background: "radial-gradient(ellipse at 50% 0%, rgba(232,67,147,0.12) 0%, transparent 65%)"}} />
-        <div className="max-w-4xl mx-auto relative">
+      <section className="relative overflow-hidden min-h-[92vh] flex flex-col items-center justify-center px-4 py-16 text-center">
 
-          {/* Social proof badge */}
-          <div className="inline-flex items-center gap-2 bg-[#e84393]/10 border border-[#e84393]/25 rounded-full px-5 py-2 text-sm text-[#e84393] mb-8">
-            <span className="text-base">⭐</span>
-            <span><strong>{count.toLocaleString("pt-BR")}+</strong> mães emocionadas · Nota <strong>5 estrelas</strong></span>
+        {/* Fundo com gradiente rico */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(232,67,147,0.22) 0%, transparent 70%), radial-gradient(ellipse 50% 40% at 80% 80%, rgba(192,48,111,0.1) 0%, transparent 60%), #050508" }} />
+
+        {/* Pétalas decorativas flutuando */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {[
+            { top: "8%", left: "6%", size: "2rem", delay: "0s", dur: "6s" },
+            { top: "15%", left: "88%", size: "1.4rem", delay: "1s", dur: "7s" },
+            { top: "35%", left: "3%", size: "1.2rem", delay: "2s", dur: "8s" },
+            { top: "60%", left: "92%", size: "1.6rem", delay: "0.5s", dur: "9s" },
+            { top: "75%", left: "8%", size: "1rem", delay: "3s", dur: "6s" },
+            { top: "20%", left: "50%", size: "0.9rem", delay: "1.5s", dur: "7s" },
+          ].map((p, i) => (
+            <div key={i} className="absolute opacity-20 select-none"
+              style={{
+                top: p.top, left: p.left, fontSize: p.size,
+                animation: `particle-float ${p.dur} ${p.delay} ease-in-out infinite`,
+              }}>🌸</div>
+          ))}
+        </div>
+
+        <div className="max-w-4xl mx-auto relative z-10">
+
+          {/* Pill de contagem regressiva */}
+          <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 backdrop-blur rounded-full px-5 py-2.5 mb-10">
+            <span className="text-sm">🌸</span>
+            <span className="text-white/60 text-sm">Dia das Mães em</span>
+            <div className="flex items-center gap-1.5">
+              {[
+                { v: countdown.dias, l: "d" },
+                { v: countdown.horas, l: "h" },
+                { v: countdown.minutos, l: "m" },
+                { v: countdown.segundos, l: "s" },
+              ].map((item, i) => (
+                <span key={i} className="flex items-baseline gap-0.5">
+                  <span className="font-black text-white tabular-nums" style={{ minWidth: "1.5ch" }}>
+                    {String(item.v).padStart(2, "0")}
+                  </span>
+                  <span className="text-white/35 text-xs">{item.l}</span>
+                  {i < 3 && <span className="text-white/20 text-xs ml-0.5">·</span>}
+                </span>
+              ))}
+            </div>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-black mb-6 leading-[1.05] tracking-tight">
+          {/* Headline principal */}
+          <h1 className="text-5xl md:text-7xl font-black mb-7 leading-[1.05] tracking-tight">
             O presente que vai<br />
-            <span style={{ background: "linear-gradient(135deg, #e84393 0%, #ff6eb4 50%, #c0306f 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            <span style={{ background: "linear-gradient(135deg, #ff80be 0%, #e84393 45%, #c0306f 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               fazer sua mãe chorar.
             </span>
           </h1>
 
-          <p className="text-xl text-white/55 mb-3 max-w-2xl mx-auto leading-relaxed">
-            Crie uma retrospectiva animada estilo <strong className="text-white/80">Spotify Wrapped</strong> com as fotos,
-            a música e a mensagem que sua mãe vai guardar para sempre no coração.
+          <p className="text-lg md:text-xl text-white/50 mb-2 max-w-xl mx-auto leading-relaxed">
+            Uma retrospectiva animada com as fotos, a música e a mensagem
+            que ela vai guardar para sempre no coração.
           </p>
-          <p className="text-sm text-white/25 mb-10">Pronto em 5 minutos · Acesso permanente · Pagamento único R$ 9,90</p>
+          <p className="text-sm text-white/25 mb-10">Pronto em 5 minutos · Pagamento único R$ 9,90</p>
 
+          {/* CTA */}
           <Link href="/criar"
-            className="inline-block text-white text-lg font-black px-12 py-5 rounded-full transition-all hover:scale-105 mb-5"
-            style={{ background: "linear-gradient(135deg, #e84393 0%, #c0306f 100%)", boxShadow: "0 16px 48px rgba(232,67,147,0.4)" }}>
-            Criar meu presente agora →
+            className="inline-flex items-center gap-2 text-white text-base font-black px-10 py-4.5 rounded-full transition-all hover:scale-105 mb-3 py-4"
+            style={{ background: "linear-gradient(135deg, #e84393 0%, #c0306f 100%)", boxShadow: "0 16px 56px rgba(232,67,147,0.45)" }}>
+            🌸 Criar presente para minha mãe →
           </Link>
 
-          <div className="flex items-center justify-center gap-3 mb-14">
-            <div className="flex -space-x-2">
-              {["AS", "BM", "CL", "DP"].map((init, i) => (
-                <div key={i} className={`w-8 h-8 rounded-full border-2 border-[#0a0a0a] flex items-center justify-center text-xs font-bold ${["bg-pink-600", "bg-purple-600", "bg-rose-600", "bg-fuchsia-600"][i]}`}>
-                  {init}
-                </div>
-              ))}
-            </div>
-            <p className="text-sm text-white/40">+50 mil presentes entregues com amor ♥</p>
-          </div>
+          <p className="text-white/20 text-xs mb-14">🔒 Pix · Cartão · Boleto · Acesso imediato após pagamento</p>
+
 
           {/* Preview do "celular" com Wrapped mockup */}
           <div className="flex justify-center gap-6 items-end">
@@ -432,8 +471,13 @@ export default function Home() {
       {/* FOOTER */}
       <footer className="border-t border-white/5 py-10 px-4">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/25">
-          <Link href="/" className="flex items-center gap-2 text-white font-bold">
-            <span className="text-[#e84393]">♥</span> LoveGift
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs"
+              style={{ background: "linear-gradient(135deg, #e84393, #c0306f)" }}>🌸</div>
+            <span className="font-black">
+              <span style={{ background: "linear-gradient(135deg, #e84393, #ff6eb4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Love</span>
+              <span className="text-white">Gift</span>
+            </span>
           </Link>
           <div className="flex gap-6">
             <a href="#como-funciona" className="hover:text-white transition-colors">Como Funciona</a>
