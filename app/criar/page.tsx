@@ -48,7 +48,7 @@ export default function CriarPage() {
   const [musicaSelecionada, setMusicaSelecionada] = useState<YTResult | null>(null);
   const buscaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [form, setForm] = useState<FormData>({
-    nomeRemetente: "", nomeDestinatario: "", ocasiao: "", dataEspecial: "",
+    nomeRemetente: "", nomeDestinatario: "", ocasiao: "Dia das Mães", dataEspecial: "",
     mensagem: "", musica: "", musicaUrl: "", tema: "romantico", moldura: "nenhuma",
     email: "", fotos: [], premium: false,
   });
@@ -197,13 +197,13 @@ export default function CriarPage() {
         {etapa === 1 && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Conte sua história 💌</h1>
-              <p className="text-white/50">Vamos começar com as informações do casal</p>
+              <h1 className="text-3xl font-bold mb-2">Um presente pra ela 🌸</h1>
+              <p className="text-white/50">Vamos começar com as informações do presente</p>
             </div>
             <div className="space-y-4">
               {[
-                { label: "Seu nome", key: "nomeRemetente", placeholder: "Ex: João" },
-                { label: "Nome de quem vai receber", key: "nomeDestinatario", placeholder: "Ex: Ana" },
+                { label: "Seu nome (filho/a)", key: "nomeRemetente", placeholder: "Ex: Lucas" },
+                { label: "Nome da sua mãe", key: "nomeDestinatario", placeholder: "Ex: Maria" },
               ].map(({ label, key, placeholder }) => (
                 <div key={key}>
                   <label className="block text-sm font-medium mb-2 text-white/70">{label}</label>
@@ -217,6 +217,7 @@ export default function CriarPage() {
                 <select value={form.ocasiao} onChange={(e) => set("ocasiao", e.target.value)}
                   className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#e84393]/50 transition-colors">
                   <option value="">Selecione a ocasião</option>
+                  <option value="Dia das Mães">🌸 Dia das Mães (10 de maio)</option>
                   <optgroup label="💑 Relacionamentos">
                     {["Aniversário de namoro", "Aniversário de casamento", "Dia dos Namorados", "Pedido de namoro", "Reconciliação"].map(o => <option key={o} value={o}>{o}</option>)}
                   </optgroup>
@@ -240,7 +241,7 @@ export default function CriarPage() {
                 <label className="block text-sm font-medium mb-2 text-white/70">
                   Mensagem pessoal <span className="text-white/30 font-normal">{contadorMensagem}/500</span>
                 </label>
-                <textarea placeholder="Escreva uma mensagem do coração..." value={form.mensagem} maxLength={500} rows={5}
+                <textarea placeholder="Ex: Mãe, obrigado por tudo que você fez por mim. Cada sacrifício, cada abraço, cada palavra de apoio... Eu te amo mais do que consigo expressar." value={form.mensagem} maxLength={500} rows={5}
                   onChange={(e) => { set("mensagem", e.target.value); setContadorMensagem(e.target.value.length); }}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#e84393]/50 transition-colors resize-none" />
               </div>

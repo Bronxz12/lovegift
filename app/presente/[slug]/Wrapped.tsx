@@ -120,29 +120,29 @@ function ColorBands({ target }: { target: number }) {
 
   return (
     <div className="text-center px-8 w-full" style={{ animation: "scale-in 0.5s ease both" }}>
-      <p className="text-white/40 text-xs uppercase tracking-widest mb-3">Horas juntos</p>
+      <p className="text-white/40 text-xs uppercase tracking-widest mb-3">Horas de amor</p>
       <p className="font-black tabular-nums leading-none"
         style={{ fontSize: "clamp(4rem,20vw,7rem)", color: "#e84393",
           filter: "drop-shadow(0 0 40px #e8439366)" }}>
         {numStr}
       </p>
-      <p className="text-white/40 text-sm mt-4">apenas 12% dos casais chegam a este momento ✨</p>
+      <p className="text-white/40 text-sm mt-4">você faz parte dos filhos mais especiais do mundo 🌸</p>
     </div>
   );
 }
 
 /* ─── Captions das fotos ─── */
 const PHOTO_SLIDES = [
-  { title: "Saudades de momentos 😩", sub: "Muitos momentos bons que queríamos que fossem eternos infelizmente passam, e nós restam só as lembranças 🤍" },
-  { title: "Que casal lindo! 😍", sub: "(só isso mesmo)" },
-  { title: "Uma memória especial ✨", sub: "Guardada para sempre no coração" },
-  { title: "Momentos como esse... 💫", sub: "São os que a gente nunca esquece" },
-  { title: "Aqui nesse registro 📸", sub: "Uma parte da nossa história" },
-  { title: "Eternizando 💖", sub: "Porque alguns momentos precisam durar pra sempre" },
-  { title: "Juntos 🥰", sub: "Cada segundo ao seu lado faz sentido" },
-  { title: "Nossa história em fotos 🎞️", sub: "Cada imagem vale mais que mil palavras" },
-  { title: "Olha essa aqui! 😭", sub: "Esse momento ficou guardado pra sempre" },
-  { title: "Sem palavras 💗", sub: "A foto fala por si só" },
+  { title: "A mulher mais forte que conheço 💪", sub: "Ela carregou o mundo nas costas sem nunca desistir. Tudo por amor." },
+  { title: "Saudade de momentos assim 🥹", sub: "Cada memória com ela é um tesouro que o tempo não apaga." },
+  { title: "Minha mãe, meu lar 🏡", sub: "Em qualquer lugar do mundo, ela é onde me sinto em casa." },
+  { title: "Uma memória especial ✨", sub: "Guardada para sempre no coração." },
+  { title: "Momentos como esse... 💫", sub: "São os que a gente nunca vai esquecer." },
+  { title: "Obrigado por tudo, mãe 🌸", sub: "Por cada abraço, cada conselho e cada sacrifício feito por amor." },
+  { title: "Nossa história em fotos 🎞️", sub: "Cada imagem vale mais que mil palavras." },
+  { title: "Ela sempre esteve lá 💖", sub: "Nos dias bons e nos dias difíceis — sempre do meu lado." },
+  { title: "Olha essa aqui! 😭", sub: "Esse momento ficou guardado pra sempre no meu coração." },
+  { title: "Sem palavras 💗", sub: "A foto fala por si só. Te amo, mãe." },
 ];
 
 /* ─── Monta slides ─── */
@@ -271,7 +271,7 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
 
             <p className="text-white/50 text-sm leading-relaxed mb-10"
               style={{ animation: "slide-up 0.5s 0.2s ease both" }}>
-              Um momento único feito com carinho<br />para celebrar a jornada de vocês
+              Um presente feito com amor<br />para celebrar a mulher mais importante da sua vida
             </p>
 
             {/* CTA */}
@@ -293,7 +293,7 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
             style={{ background: "linear-gradient(180deg, #0f0010 0%, #1a0020 100%)" }}>
             {/* Título no topo */}
             <div className="pt-14 px-5 pb-3 text-center" style={{ animation: "slide-up 0.4s ease both" }}>
-              <p className="text-white text-base font-bold">Uma retrospectiva do nosso amor 🥰🥰🥰</p>
+              <p className="text-white text-base font-bold">Uma retrospectiva do nosso amor 🌸🥰</p>
             </div>
 
             {/* Foto de capa */}
@@ -316,7 +316,7 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-white text-sm truncate">{presente.musica}</p>
-                  <p className="text-white/40 text-xs mt-0.5">A música de vocês</p>
+                  <p className="text-white/40 text-xs mt-0.5">A música dela 🎵</p>
                 </div>
                 {/* Play */}
                 <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
@@ -357,7 +357,7 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
             style={{ background: "linear-gradient(180deg, #0a0a0a 0%, #111 100%)" }}>
             {/* Título */}
             <div className="pt-14 px-5 text-center" style={{ animation: "slide-up 0.4s ease both" }}>
-              <p className="text-white text-base font-bold">Sobre o casal</p>
+              <p className="text-white text-base font-bold">Sobre nós 🌸</p>
             </div>
 
             {/* Foto */}
@@ -376,7 +376,7 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
               </p>
               {presente.dataEspecial && (
                 <p className="text-white/40 text-xs mt-1">
-                  Juntos desde {new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
+                  Uma história de amor desde {new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
                 </p>
               )}
 
@@ -491,7 +491,7 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
               <div className="flex justify-center mb-5" style={{ animation: "slide-up 0.4s ease both" }}>
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-white"
                   style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                  WRAPPED DO CASAL
+                  WRAPPED DE MÃE 🌸
                 </div>
               </div>
 
@@ -508,7 +508,7 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
 
               {/* Nossa Conexão */}
               <div className="text-center mb-5" style={{ animation: "slide-up 0.5s 0.2s ease both" }}>
-                <p className="text-white/35 text-xs uppercase tracking-widest">Nossa Conexão</p>
+                <p className="text-white/35 text-xs uppercase tracking-widest">Nosso Amor</p>
                 <h2 className="text-3xl font-black text-white mt-1">
                   {presente.nomeRemetente}{" "}
                   <span className="text-white/25">&</span>{" "}
@@ -523,7 +523,7 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
                 {/* Ocasião */}
                 <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5">
                   <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm flex-shrink-0"
-                    style={{ background: `${glow}22` }}>💑</div>
+                    style={{ background: `${glow}22` }}>🌸</div>
                   <div>
                     <p className="text-white/35 text-xs uppercase tracking-wider">Ocasião</p>
                     <p className="text-white font-semibold text-sm mt-0.5">{presente.ocasiao}</p>
@@ -536,7 +536,7 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
                     <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm flex-shrink-0"
                       style={{ background: `${glow}22` }}>🎵</div>
                     <div className="min-w-0">
-                      <p className="text-white/35 text-xs uppercase tracking-wider">Música de vocês</p>
+                      <p className="text-white/35 text-xs uppercase tracking-wider">Música dela</p>
                       <p className="text-white font-semibold text-sm mt-0.5 truncate">{presente.musica}</p>
                     </div>
                   </div>
@@ -559,13 +559,13 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
                 {/* Total dias */}
                 {diasJuntos && diasJuntos > 0 && (
                   <div className="px-5 py-5">
-                    <p className="text-white/35 text-xs uppercase tracking-wider mb-2">Total de dias juntos</p>
+                    <p className="text-white/35 text-xs uppercase tracking-wider mb-2">Total de dias de amor</p>
                     <p className="font-black tabular-nums" style={{ fontSize: "clamp(3rem,14vw,5rem)", color: glow, lineHeight: 1 }}>
                       <CountUp target={diasJuntos} />
                     </p>
                     <p className="text-white/25 text-xs mt-1">dias</p>
                     <p className="text-white/30 text-xs mt-2">
-                      = {(diasJuntos * 24).toLocaleString("pt-BR")} horas de amor ✨
+                      = {(diasJuntos * 24).toLocaleString("pt-BR")} horas de amor e gratidão 🌸
                     </p>
                   </div>
                 )}

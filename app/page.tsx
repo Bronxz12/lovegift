@@ -4,14 +4,14 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 
 const depoimentos = [
-  { nome: "João S.", texto: "Ela disse que foi o melhor presente que já ganhou na vida! Valeu cada centavo.", avatar: "JS", cor: "bg-pink-600" },
-  { nome: "Carla M.", texto: "A reação dele não teve preço, superou tudo que eu imaginava. Chorou muito!", avatar: "CM", cor: "bg-purple-600" },
-  { nome: "Lucas R.", texto: "Simplesmente perfeito, minha namorada chorou quando recebeu. Amei demais!", avatar: "LR", cor: "bg-rose-600" },
-  { nome: "Marcos T.", texto: "Precisava de um presente rápido. Em 5 minutos ficou incrível. Recomendo!", avatar: "MT", cor: "bg-fuchsia-600" },
-  { nome: "Ana P.", texto: "Meu marido ficou sem palavras. As fotos animadas são lindas demais!", avatar: "AP", cor: "bg-pink-500" },
-  { nome: "Pedro L.", texto: "A música personalizada fez ela chorar de emoção. Melhor presente ever.", avatar: "PL", cor: "bg-purple-500" },
-  { nome: "Juliana F.", texto: "Fiz de surpresa no aniversário de namoro. Ele amou cada detalhe!", avatar: "JF", cor: "bg-rose-500" },
-  { nome: "Rafael K.", texto: "Interface super fácil. Em minutos criei algo que jamais conseguiria sozinho.", avatar: "RK", cor: "bg-fuchsia-500" },
+  { nome: "Lucas R.", texto: "Minha mãe chorou do começo ao fim. Ela disse que foi o presente mais bonito que já recebeu na vida.", avatar: "LR", cor: "bg-pink-600" },
+  { nome: "Camila F.", texto: "Ela ligou me agradecendo por 20 minutos. Nunca vi minha mãe tão emocionada. Valeu muito mais que o preço!", avatar: "CF", cor: "bg-purple-600" },
+  { nome: "Rodrigo M.", texto: "Fiz para minha mãe no Dia das Mães. Ela assistiu 3 vezes e compartilhou com toda a família. Perfeito!", avatar: "RM", cor: "bg-rose-600" },
+  { nome: "Fernanda S.", texto: "Precisava de algo especial para minha mãe. Em 5 minutos ficou incrível. Ela amou cada foto!", avatar: "FS", cor: "bg-fuchsia-600" },
+  { nome: "Bruno T.", texto: "Coloquei a música favorita da minha mãe e ela chorou na hora que abriu. Melhor presente que já dei.", avatar: "BT", cor: "bg-pink-500" },
+  { nome: "Isabela P.", texto: "Minha mãe mora longe e esse presente fez ela sentir que eu estava do lado dela. Muito obrigada!", avatar: "IP", cor: "bg-purple-500" },
+  { nome: "Diego A.", texto: "Interface super fácil. Em minutos criei algo que minha mãe vai guardar para sempre.", avatar: "DA", cor: "bg-rose-500" },
+  { nome: "Mariana K.", texto: "Fiz para minha avó também! As duas choraram juntas assistindo. Vale cada centavo.", avatar: "MK", cor: "bg-fuchsia-500" },
 ];
 
 const faqs = [
@@ -49,7 +49,7 @@ export default function Home() {
 
       {/* URGENCY BANNER */}
       <div className="bg-gradient-to-r from-[#e84393] via-[#c0306f] to-[#e84393] text-white text-center py-2.5 px-4 text-sm font-semibold animate-pulse-slow">
-        🔥 Promoção por tempo limitado — <strong>R$ 9,90</strong> <span className="opacity-70 line-through ml-1">R$ 29,90</span> · Economize 66%
+        🌸 Dia das Mães — <strong>10 de maio</strong> · Crie agora por <strong>R$ 9,90</strong> e surpreenda sua mãe ♥
       </div>
 
       {/* NAVBAR */}
@@ -80,19 +80,19 @@ export default function Home() {
           {/* Social proof badge */}
           <div className="inline-flex items-center gap-2 bg-[#e84393]/10 border border-[#e84393]/25 rounded-full px-5 py-2 text-sm text-[#e84393] mb-8">
             <span className="text-base">⭐</span>
-            <span><strong>{count.toLocaleString("pt-BR")}+</strong> presentes criados · Nota <strong>5 estrelas</strong></span>
+            <span><strong>{count.toLocaleString("pt-BR")}+</strong> mães emocionadas · Nota <strong>5 estrelas</strong></span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-black mb-6 leading-[1.05] tracking-tight">
             O presente que vai<br />
             <span style={{ background: "linear-gradient(135deg, #e84393 0%, #ff6eb4 50%, #c0306f 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              fazer ela chorar.
+              fazer sua mãe chorar.
             </span>
           </h1>
 
           <p className="text-xl text-white/55 mb-3 max-w-2xl mx-auto leading-relaxed">
             Crie uma retrospectiva animada estilo <strong className="text-white/80">Spotify Wrapped</strong> com as fotos,
-            a música e a mensagem que vão partir o coração (de amor) de quem você ama.
+            a música e a mensagem que sua mãe vai guardar para sempre no coração.
           </p>
           <p className="text-sm text-white/25 mb-10">Pronto em 5 minutos · Acesso permanente · Pagamento único R$ 9,90</p>
 
@@ -110,7 +110,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <p className="text-sm text-white/40">+50 mil casais já se emocionaram ♥</p>
+            <p className="text-sm text-white/40">+50 mil presentes entregues com amor ♥</p>
           </div>
 
           {/* Preview do "celular" com Wrapped mockup */}
@@ -122,10 +122,10 @@ export default function Home() {
                 <div className="flex-1 flex flex-col items-center justify-center px-5 pb-6">
                   <div className="text-[#e84393] text-5xl mb-3" style={{ filter: "drop-shadow(0 0 20px rgba(232,67,147,0.6))" }}>♥</div>
                   <p className="text-white/20 text-[10px] uppercase tracking-widest mb-1">Para</p>
-                  <p className="text-white font-black text-2xl mb-1">Ana</p>
-                  <p className="text-white/30 text-xs mb-5">Com amor de João</p>
+                  <p className="text-white font-black text-2xl mb-1">Mamãe 🌸</p>
+                  <p className="text-white/30 text-xs mb-5">Com amor de Lucas ♥</p>
                   <div className="grid grid-cols-2 gap-1.5 w-full mb-4">
-                    {[["📸","3 fotos"],["🎵","Nossa música"],["💌","Mensagem"],["🗓️","856 dias"]].map(([icon, label], i) => (
+                    {[["📸","5 fotos"],["🎵","Sua música"],["💌","Mensagem"],["🌸","Dia das Mães"]].map(([icon, label], i) => (
                       <div key={i} className="bg-white/5 border border-white/5 rounded-xl p-2 text-center">
                         <div className="text-lg mb-0.5">{icon}</div>
                         <div className="text-white/40 text-[9px]">{label}</div>
@@ -153,18 +153,18 @@ export default function Home() {
               </div>
               <div className="h-full flex flex-col items-center justify-center px-6 text-center">
                 <div className="text-4xl mb-3 animate-bounce">♥</div>
-                <p className="text-white/40 text-[10px] uppercase tracking-widest mb-2">Aniversário de Namoro</p>
-                <div className="text-5xl font-black text-white leading-none mb-1">856</div>
-                <p className="text-white/50 text-xs mb-5">dias de amor</p>
+                <p className="text-white/40 text-[10px] uppercase tracking-widest mb-2">Dia das Mães 🌸</p>
+                <div className="text-5xl font-black text-white leading-none mb-1">9.490</div>
+                <p className="text-white/50 text-xs mb-5">dias de amor e gratidão</p>
                 <div className="grid grid-cols-3 gap-1.5 w-full mb-5">
-                  {[["2","anos"],["28","meses"],["20.5k","horas"]].map(([n, l], i) => (
+                  {[["26","anos"],["312","meses"],["227k","horas"]].map(([n, l], i) => (
                     <div key={i} className="bg-white/10 rounded-xl p-2">
                       <p className="text-white font-black text-sm">{n}</p>
                       <p className="text-white/40 text-[9px]">{l}</p>
                     </div>
                   ))}
                 </div>
-                <p className="text-white/60 text-xs italic leading-tight">&ldquo;Cada dia foi uma nova razão para ter certeza que fez a escolha certa.&rdquo;</p>
+                <p className="text-white/60 text-xs italic leading-tight">&ldquo;Obrigado por ser meu lar, minha força e meu maior amor.&rdquo;</p>
               </div>
             </div>
           </div>
@@ -201,10 +201,10 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[
-              { num: "01", icon: "✍️", title: "Conta sua história", desc: "Nome do casal, ocasião especial e a data que tudo começou" },
-              { num: "02", icon: "📸", title: "Adiciona as fotos", desc: "Até 10 fotos que vão virar slides animados no estilo Wrapped" },
-              { num: "03", icon: "🎵", title: "Escolhe a música", desc: "A trilha sonora que define vocês dois vai tocar enquanto o presente abre" },
-              { num: "04", icon: "💝", title: "Envia e emociona", desc: "Link + QR Code na hora. A reação é garantida" },
+              { num: "01", icon: "✍️", title: "Conta a história", desc: "Seu nome, o nome da sua mãe, a data especial e uma mensagem do coração" },
+              { num: "02", icon: "📸", title: "Adiciona as fotos", desc: "Até 10 fotos que vão virar slides animados — momentos que valem para sempre" },
+              { num: "03", icon: "🎵", title: "Escolhe a música", desc: "A música favorita dela vai tocar enquanto o presente é aberto. Lágrimas garantidas" },
+              { num: "04", icon: "🌸", title: "Envia e emociona", desc: "Link + QR Code na hora. Pode enviar pelo WhatsApp ou imprimir e entregar pessoalmente" },
             ].map((step, i) => (
               <div key={i} className="relative bg-white/[0.03] border border-white/8 rounded-2xl p-6 hover:border-[#e84393]/30 transition-all hover:bg-white/5">
                 <div className="text-[#e84393]/20 text-5xl font-black mb-4 leading-none">{step.num}</div>
@@ -225,7 +225,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-[#e84393] text-sm uppercase tracking-widest font-semibold mb-3">Tudo incluso</p>
-            <h2 className="text-4xl md:text-5xl font-black mb-4">Cada detalhe pensado<br />para emocionar</h2>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">Cada detalhe pensado<br />para emocionar sua mãe</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -233,37 +233,37 @@ export default function Home() {
                 icon: "🎬",
                 badge: "Exclusivo",
                 title: "Retrospectiva animada",
-                desc: "Suas fotos ganham vida numa sequência cinematográfica estilo Spotify Wrapped. Cada imagem com música, transição e texto personalizado. A reação de quem vê é inevitável.",
+                desc: "As fotos de vocês ganham vida numa sequência cinematográfica estilo Spotify Wrapped. Cada imagem com música, transição e texto. A reação da sua mãe é inevitável.",
               },
               {
                 icon: "💌",
                 badge: "Personalizado",
                 title: "Mensagem do coração",
-                desc: "Escreva do jeito que você é, sem limitação. Sua mensagem aparece num card elegante, com a identidade visual do presente. Palavras que ficam para sempre.",
+                desc: "Escreva tudo que você sente pela sua mãe — sem limitação. A mensagem aparece num card elegante no presente. Palavras que ela vai reler muitas vezes.",
               },
               {
                 icon: "🎵",
                 badge: "Trilha sonora",
-                title: "A música de vocês",
-                desc: "Adicione a música que é de vocês dois. Ela toca enquanto o presente é explorado, criando uma experiência que mistura emoção visual e sonora ao mesmo tempo.",
+                title: "A música favorita dela",
+                desc: "Escolha a música que sua mãe ama. Ela toca enquanto o presente é explorado, criando uma experiência que mistura emoção visual e sonora ao mesmo tempo.",
               },
               {
                 icon: "📊",
                 badge: "Dados reais",
                 title: "Estatísticas do amor",
-                desc: "Dias juntos, meses, anos, horas — tudo calculado automaticamente a partir da data que vocês começaram. Números que mostram o tamanho do amor.",
+                desc: "Dias, meses, anos e horas de amor — tudo calculado automaticamente. Números que traduzem o tamanho do que ela representa na sua vida.",
               },
               {
                 icon: "🔗",
                 badge: "Para sempre",
                 title: "Link permanente + QR Code",
-                desc: "Envie por qualquer app — WhatsApp, Instagram, e-mail. Ou imprima o QR Code e entregue no papel. O presente fica disponível para sempre, sem prazo de expiração.",
+                desc: "Envie pelo WhatsApp, Instagram ou e-mail. Ou imprima o QR Code e entregue pessoalmente. O presente fica ativo para sempre — ela pode abrir quando quiser.",
               },
               {
-                icon: "✨",
-                badge: "5 ocasiões",
-                title: "Temas por ocasião",
-                desc: "Aniversário de namoro, Dia dos Namorados, Aniversário, Pedido de namoro ou Só porque sim. Cada um com gradientes, textos e emojis únicos. Parece feito por designer.",
+                icon: "🌸",
+                badge: "Dia das Mães",
+                title: "Tema especial de Mães",
+                desc: "Tema exclusivo criado para o Dia das Mães. Cores, textos e animações pensados para tornar esse presente único e inesquecível para ela.",
               },
             ].map((f, i) => (
               <div key={i} className="bg-[#0f0f0f] border border-white/8 rounded-2xl p-6 hover:border-[#e84393]/20 transition-all group">
@@ -297,8 +297,8 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-[#e84393] text-sm uppercase tracking-widest font-semibold mb-3">Histórias reais</p>
-            <h2 className="text-4xl font-black mb-3">Quem usou, se emocionou.</h2>
-            <p className="text-white/40">E quem recebeu, nunca esqueceu.</p>
+            <h2 className="text-4xl font-black mb-3">Quem deu, se emocionou.</h2>
+            <p className="text-white/40">E as mães que receberam, nunca vão esquecer.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {depoimentos.slice(0, 6).map((d, i) => (
@@ -353,11 +353,11 @@ export default function Home() {
                 {[
                   "Retrospectiva animada estilo Wrapped",
                   "Até 10 fotos personalizadas",
-                  "Música do casal integrada (YouTube)",
+                  "Música favorita dela integrada",
                   "Mensagem especial no coração do presente",
-                  "Estatísticas do relacionamento",
+                  "Estatísticas dos anos de amor",
                   "Link permanente + QR Code exclusivo",
-                  "5 temas por ocasião",
+                  "Tema especial Dia das Mães 🌸",
                   "🛡️ Garantia de 7 dias",
                 ].map((item, i) => (
                   <li key={i} className="flex items-center gap-3 text-sm text-white/75">
@@ -411,9 +411,9 @@ export default function Home() {
         <div className="max-w-2xl mx-auto relative">
           <div className="text-7xl mb-8 animate-pulse-heart" style={{ filter: "drop-shadow(0 0 30px rgba(232,67,147,0.5))" }}>♥</div>
           <h2 className="text-4xl md:text-5xl font-black mb-4 leading-tight">
-            Qual vai ser a reação<br />de quem você ama?
+            Qual vai ser a reação<br />da sua mãe? 🌸
           </h2>
-          <p className="text-white/45 mb-4 text-lg">Crie agora e descubra. A emoção acontece em segundos.</p>
+          <p className="text-white/45 mb-4 text-lg">Ela merece um presente que vá além do buquê. Crie agora em 5 minutos.</p>
           <p className="text-[#e84393] font-bold mb-10 text-base">Por apenas R$ 9,90 — pagamento único, acesso permanente.</p>
           <Link href="/criar"
             className="inline-block text-white text-xl font-black px-14 py-5 rounded-full transition-all hover:scale-105 mb-5"
