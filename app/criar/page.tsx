@@ -174,7 +174,7 @@ export default function CriarPage() {
   const preco = form.premium ? "R$ 19,90" : "R$ 9,90";
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-[#0d0008] text-white">
       {/* Header */}
       <div className="border-b border-white/10 px-4 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">

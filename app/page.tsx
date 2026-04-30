@@ -50,10 +50,10 @@ export default function Home() {
   const countdown = useCountdown(diasMaes);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#0d0008] text-white overflow-x-hidden">
 
       {/* NAVBAR */}
-      <nav className="sticky top-0 left-0 right-0 z-50 bg-[#050508]/95 backdrop-blur-md border-b border-white/5">
+      <nav className="sticky top-0 left-0 right-0 z-50 bg-[#0d0008]/95 backdrop-blur-md border-b border-white/5">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo redesenhado */}
           <Link href="/" className="flex items-center gap-2.5">
@@ -84,7 +84,7 @@ export default function Home() {
 
         {/* Fundo com gradiente rico */}
         <div className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(232,67,147,0.22) 0%, transparent 70%), radial-gradient(ellipse 50% 40% at 80% 80%, rgba(192,48,111,0.1) 0%, transparent 60%), #050508" }} />
+          style={{ background: "radial-gradient(ellipse 90% 65% at 50% -5%, rgba(232,67,147,0.28) 0%, transparent 68%), radial-gradient(ellipse 60% 50% at 90% 90%, rgba(160,20,80,0.18) 0%, transparent 60%), radial-gradient(ellipse 40% 40% at 10% 70%, rgba(200,40,100,0.12) 0%, transparent 60%), #0d0008" }} />
 
         {/* Pétalas decorativas flutuando */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -156,7 +156,7 @@ export default function Home() {
           <div className="flex justify-center gap-6 items-end">
             {/* Tela do presente */}
             <div className="relative w-52 h-[440px] bg-[#0d0d0d] rounded-[2.5rem] border-2 border-white/10 shadow-2xl overflow-hidden hidden sm:block">
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-[#0a0a0a] rounded-full" />
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-[#0d0008] rounded-full" />
               <div className="h-full flex flex-col pt-10">
                 <div className="flex-1 flex flex-col items-center justify-center px-5 pb-6">
                   <div className="text-[#e84393] text-5xl mb-3" style={{ filter: "drop-shadow(0 0 20px rgba(232,67,147,0.6))" }}>♥</div>
@@ -260,7 +260,7 @@ export default function Home() {
       </section>
 
       {/* FEATURES — O que está incluído */}
-      <section className="py-24 px-4 bg-white/[0.015]">
+      <section className="py-24 px-4 bg-[#180010]/60">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-[#e84393] text-sm uppercase tracking-widest font-semibold mb-3">Tudo incluso</p>
@@ -305,7 +305,7 @@ export default function Home() {
                 desc: "Tema exclusivo criado para o Dia das Mães. Cores, textos e animações pensados para tornar esse presente único e inesquecível para ela.",
               },
             ].map((f, i) => (
-              <div key={i} className="bg-[#0f0f0f] border border-white/8 rounded-2xl p-6 hover:border-[#e84393]/20 transition-all group">
+              <div key={i} className="bg-[#130009] border border-white/8 rounded-2xl p-6 hover:border-[#e84393]/20 transition-all group">
                 <div className="flex items-start justify-between mb-4">
                   <div className="text-3xl">{f.icon}</div>
                   <span className="text-[10px] font-bold text-[#e84393] bg-[#e84393]/10 border border-[#e84393]/20 rounded-full px-2.5 py-1 uppercase tracking-wider">{f.badge}</span>
@@ -332,7 +332,7 @@ export default function Home() {
       </section>
 
       {/* DEPOIMENTOS GRID */}
-      <section className="py-24 px-4 bg-white/[0.015]">
+      <section className="py-24 px-4 bg-[#180010]/60">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-[#e84393] text-sm uppercase tracking-widest font-semibold mb-3">Histórias reais</p>
@@ -341,7 +341,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {depoimentos.slice(0, 6).map((d, i) => (
-              <div key={i} className="bg-[#0f0f0f] rounded-2xl p-6 border border-white/8 hover:border-white/15 transition-all">
+              <div key={i} className="bg-[#130009] rounded-2xl p-6 border border-white/8 hover:border-white/15 transition-all">
                 <div className="flex mb-3">
                   {[...Array(5)].map((_, j) => <span key={j} className="text-[#e84393] text-sm">★</span>)}
                 </div>
@@ -370,7 +370,7 @@ export default function Home() {
           <p className="text-white/40 mb-12">Pagamento único. Sem assinatura. Sem surpresas.</p>
 
           <div className="rounded-3xl p-8 border border-[#e84393]/30 relative overflow-hidden"
-            style={{ background: "linear-gradient(135deg, rgba(232,67,147,0.08) 0%, #0f0f0f 60%)" }}>
+            style={{ background: "linear-gradient(135deg, rgba(232,67,147,0.1) 0%, #130009 60%)" }}>
             <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at top, rgba(232,67,147,0.1) 0%, transparent 60%)" }} />
             <div className="relative">
               <div className="inline-flex items-center gap-2 text-white text-xs font-black px-4 py-1.5 rounded-full mb-6"
@@ -417,7 +417,7 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-24 px-4 bg-white/[0.015]">
+      <section id="faq" className="py-24 px-4 bg-[#180010]/60">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-[#e84393] text-sm uppercase tracking-widest font-semibold mb-3">Dúvidas</p>
@@ -425,7 +425,7 @@ export default function Home() {
           </div>
           <div className="space-y-2">
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-[#0f0f0f] rounded-2xl border border-white/8 overflow-hidden">
+              <div key={i} className="bg-[#130009] rounded-2xl border border-white/8 overflow-hidden">
                 <button
                   onClick={() => setFaqAberto(faqAberto === i ? null : i)}
                   className="w-full text-left px-6 py-5 flex items-center justify-between font-semibold hover:bg-white/[0.03] transition-colors"
