@@ -631,39 +631,46 @@ export default function PresentePage() {
     <div className={`min-h-screen ${tema.bg} ${tema.text} pb-28`}>
 
       {/* ── Iframe oculto para autoplay da música ── */}
-      {/* Não pode ser display:none — precisa estar visível (mesmo que minúsculo) para o browser tocar */}
-      {musicaTocando && youtubeId && (
-        <div style={{ position: "fixed", bottom: 0, left: 0, width: "1px", height: "1px", overflow: "hidden", opacity: 0, pointerEvents: "none", zIndex: -1 }}>
-          <iframe
-            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&loop=1&playlist=${youtubeId}&controls=0&modestbranding=1`}
-            allow="autoplay; encrypted-media"
-            width="1"
-            height="1"
-            title="música"
-          />
-        </div>
-      )}
-
-      {/* ── Pill "Tocando agora" ── */}
-      {musicaTocando && presente?.musica && (
+      {/* ── Mini player de música fixo no topo ── */}
+      {youtubeId && (
         <div
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-full shadow-xl"
-          style={{ background: "rgba(13,0,8,0.92)", border: "1px solid rgba(232,67,147,0.35)", backdropFilter: "blur(12px)", maxWidth: "90vw" }}
+          className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
+          style={{
+            transform: musicaTocando ? "translateY(0)" : "translateY(-110%)",
+            background: "rgba(10,0,6,0.97)",
+            borderBottom: "1px solid rgba(232,67,147,0.25)",
+            backdropFilter: "blur(16px)",
+          }}
         >
-          {/* Equalizador animado */}
-          <div className="flex items-end gap-0.5 h-4 flex-shrink-0">
-            {[3,5,4,6,3].map((h, i) => (
-              <div key={i} className="w-0.5 rounded-full"
-                style={{ height: `${h * 2}px`, background: "#e84393",
-                  animation: `bar-dance ${0.4 + i * 0.1}s ${i * 0.08}s ease-in-out infinite` }} />
-            ))}
+          <div className="flex items-center gap-3 px-4 py-2 max-w-2xl mx-auto">
+            {/* Equalizador */}
+            <div className="flex items-end gap-0.5 h-5 flex-shrink-0">
+              {[3,5,4,6,3].map((h, i) => (
+                <div key={i} className="w-0.5 rounded-full"
+                  style={{ height: `${h * 2}px`, background: "#e84393",
+                    animation: musicaTocando ? `bar-dance ${0.4 + i * 0.1}s ${i * 0.08}s ease-in-out infinite` : "none" }} />
+              ))}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white/40 text-[10px] uppercase tracking-widest leading-none mb-0.5">Tocando agora</p>
+              <p className="text-white text-xs font-semibold truncate">{presente?.musica}</p>
+            </div>
+            {/* YouTube embed visível mas pequeno — necessário para autoplay funcionar */}
+            <div className="rounded-lg overflow-hidden flex-shrink-0" style={{ width: 64, height: 36 }}>
+              <iframe
+                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=${musicaTocando ? 1 : 0}&loop=1&playlist=${youtubeId}&modestbranding=1&rel=0`}
+                allow="autoplay; encrypted-media"
+                width="64"
+                height="36"
+                title="música"
+                style={{ display: "block" }}
+              />
+            </div>
+            <button
+              onClick={() => setMusicaTocando(false)}
+              className="text-white/30 hover:text-white/60 text-lg flex-shrink-0 leading-none"
+            >✕</button>
           </div>
-          <span className="text-white/50 text-xs">Tocando agora</span>
-          <span className="text-white text-xs font-semibold truncate" style={{ maxWidth: "180px" }}>{presente.musica}</span>
-          <button
-            onClick={() => setMusicaTocando(false)}
-            className="text-white/30 hover:text-white/70 text-sm flex-shrink-0 ml-1"
-          >✕</button>
         </div>
       )}
 
