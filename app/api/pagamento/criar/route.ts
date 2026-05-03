@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import MercadoPago, { Preference } from "mercadopago";
+import MercadoPago, { Payment } from "mercadopago";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
@@ -21,42 +21,33 @@ export async function POST(req: NextRequest) {
       accessToken: process.env.MP_ACCESS_TOKEN!,
     });
 
-    const preference = new Preference(client);
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
+    const payment = new Payment(client);
 
-    const result = await preference.create({
+    const result = await payment.create({
       body: {
-        items: [
-          {
-            id: slug,
-            title: titulo,
-            quantity: 1,
-            unit_price: preco,
-            currency_id: "BRL",
-            category_id: "services",
-          },
-        ],
+        transaction_amount: preco,
+        description: titulo,
+        payment_method_id: "pix",
         payer: {
           email: presente.email || "comprador@lovegift.art.br",
         },
-        back_urls: {
-          success: `${baseUrl}/presente/${slug}?pago=1`,
-          failure: `${baseUrl}/criar?erro=pagamento`,
-          pending: `${baseUrl}/presente/${slug}?pago=pendente`,
-        },
-        auto_return: "approved",
-        notification_url: `${baseUrl}/api/pagamento/webhook`,
         metadata: { slug },
-        statement_descriptor: "LOVEGIFT",
+        notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/pagamento/webhook`,
       },
     });
 
+    const qrCode = result.point_of_interaction?.transaction_data?.qr_code;
+    const qrCodeBase64 = result.point_of_interaction?.transaction_data?.qr_code_base64;
+    const paymentId = result.id;
+
     return NextResponse.json({
-      url: result.init_point,
-      sandbox_url: result.sandbox_init_point,
+      paymentId,
+      qrCode,
+      qrCodeBase64,
+      valor: preco,
     });
   } catch (err) {
-    console.error("Erro ao criar preferência MP:", err);
+    console.error("Erro ao criar pagamento Pix MP:", err);
     return NextResponse.json({ error: "Erro ao criar pagamento" }, { status: 500 });
   }
 }

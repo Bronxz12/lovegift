@@ -42,6 +42,8 @@ export default function CriarPage() {
   const [carregando, setCarregando] = useState(false);
   const [contadorMensagem, setContadorMensagem] = useState(0);
   const [fotosPreviews, setFotosPreviews] = useState<string[]>([]);
+  const [pixModal, setPixModal] = useState<{ paymentId: number; qrCode: string; qrCodeBase64: string; valor: number; slug: string } | null>(null);
+  const [pixCopiado, setPixCopiado] = useState(false);
   const [buscaMusica, setBuscaMusica] = useState("");
   const [buscaResultados, setBuscaResultados] = useState<YTResult[]>([]);
   const [buscando, setBuscando] = useState(false);
@@ -159,8 +161,15 @@ export default function CriarPage() {
       });
       const pagData = await pagRes.json();
 
-      if (pagData.url) {
-        window.location.href = pagData.url;
+      if (pagData.paymentId && pagData.qrCode) {
+        setCarregando(false);
+        setPixModal({
+          paymentId: pagData.paymentId,
+          qrCode: pagData.qrCode,
+          qrCodeBase64: pagData.qrCodeBase64,
+          valor: pagData.valor,
+          slug,
+        });
       } else {
         window.location.href = `/presente/${slug}`;
       }
@@ -172,6 +181,36 @@ export default function CriarPage() {
   };
 
   const preco = form.premium ? "R$ 19,90" : "R$ 9,90";
+
+  // Polling para detectar pagamento aprovado
+  useEffect(() => {
+    if (!pixModal) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/pagamento/status?id=${pixModal.paymentId}`);
+        const data = await res.json();
+        if (data.status === "approved") {
+          clearInterval(interval);
+          // Ativa o presente
+          await fetch("/api/pagamento/ativar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ slug: pixModal.slug }),
+          });
+          window.location.href = `/presente/${pixModal.slug}?pago=1`;
+        }
+      } catch { /* ignora */ }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [pixModal]);
+
+  const copiarPix = () => {
+    if (!pixModal) return;
+    navigator.clipboard.writeText(pixModal.qrCode).then(() => {
+      setPixCopiado(true);
+      setTimeout(() => setPixCopiado(false), 3000);
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#0d0008] text-white">
@@ -189,6 +228,77 @@ export default function CriarPage() {
           <span className="text-sm text-white/40">Etapa {etapa} de {totalEtapas}</span>
         )}
       </div>
+
+      {/* MODAL PIX */}
+      {pixModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(12px)" }}>
+          <div className="w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl"
+            style={{ background: "linear-gradient(160deg, #130009 0%, #0d0008 100%)", border: "1px solid rgba(232,67,147,0.3)" }}>
+            {/* Header */}
+            <div className="px-6 pt-8 pb-4 text-center">
+              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl"
+                style={{ background: "linear-gradient(135deg, rgba(232,67,147,0.2), rgba(192,48,111,0.1))", border: "1px solid rgba(232,67,147,0.3)" }}>
+                🌸
+              </div>
+              <h2 className="text-xl font-black text-white mb-1">Pague com Pix</h2>
+              <p className="text-white/40 text-sm">Escaneie o QR code com qualquer banco</p>
+            </div>
+
+            {/* QR Code */}
+            <div className="px-6 pb-4">
+              <div className="bg-white rounded-2xl p-4 mx-auto w-fit mb-4">
+                {pixModal.qrCodeBase64 ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={`data:image/png;base64,${pixModal.qrCodeBase64}`}
+                    alt="QR Code Pix"
+                    className="w-48 h-48"
+                  />
+                ) : (
+                  <div className="w-48 h-48 flex items-center justify-center text-gray-400 text-sm text-center">
+                    Use o código abaixo
+                  </div>
+                )}
+              </div>
+
+              {/* Valor */}
+              <div className="text-center mb-4">
+                <span className="text-3xl font-black text-white">
+                  R$ {pixModal.valor.toFixed(2).replace(".", ",")}
+                </span>
+                <p className="text-white/40 text-xs mt-1">pagamento único • acesso permanente</p>
+              </div>
+
+              {/* Código copia-cola */}
+              <button
+                onClick={copiarPix}
+                className="w-full flex items-center justify-between gap-3 rounded-2xl px-4 py-3 transition-all"
+                style={{
+                  background: pixCopiado ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.05)",
+                  border: pixCopiado ? "1px solid rgba(34,197,94,0.4)" : "1px solid rgba(255,255,255,0.1)"
+                }}
+              >
+                <span className="text-sm font-mono text-white/60 truncate">
+                  {pixModal.qrCode.slice(0, 40)}...
+                </span>
+                <span className={`text-sm font-bold flex-shrink-0 ${pixCopiado ? "text-green-400" : "text-[#e84393]"}`}>
+                  {pixCopiado ? "✓ Copiado!" : "Copiar"}
+                </span>
+              </button>
+
+              {/* Aguardando confirmação */}
+              <div className="mt-4 flex items-center justify-center gap-2 text-white/40 text-xs">
+                <div className="w-3 h-3 rounded-full border-2 border-[#e84393] border-t-transparent animate-spin" />
+                Aguardando confirmação do pagamento...
+              </div>
+              <p className="text-center text-white/25 text-xs mt-2">
+                Após o pagamento, você será redirecionado automaticamente
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Barra de progresso */}
       <div className="h-1 bg-white/10">
