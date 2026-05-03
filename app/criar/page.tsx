@@ -91,11 +91,42 @@ export default function CriarPage() {
 
   const maxFotos = form.premium ? 30 : 10;
 
-  const adicionarFotos = (arquivos: FileList | null) => {
+  // Redimensiona imagem mantendo qualidade — máx 1920px, qualidade 92%
+  const redimensionarFoto = (file: File): Promise<File> =>
+    new Promise((resolve) => {
+      const MAX = 1920;
+      const QUALITY = 0.92;
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const { width, height } = img;
+        // Se já é pequena o suficiente, devolve original sem reprocessar
+        if (width <= MAX && height <= MAX) { resolve(file); return; }
+        const scale = MAX / Math.max(width, height);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(width * scale);
+        canvas.height = Math.round(height * scale);
+        const ctx = canvas.getContext("2d")!;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          (blob) => resolve(blob ? new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }) : file),
+          "image/jpeg",
+          QUALITY
+        );
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+
+  const adicionarFotos = async (arquivos: FileList | null) => {
     if (!arquivos) return;
     const novas = Array.from(arquivos).slice(0, maxFotos - form.fotos.length);
-    setForm((prev) => ({ ...prev, fotos: [...prev.fotos, ...novas] }));
-    novas.forEach((file) => {
+    const redimensionadas = await Promise.all(novas.map(redimensionarFoto));
+    setForm((prev) => ({ ...prev, fotos: [...prev.fotos, ...redimensionadas] }));
+    redimensionadas.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (e) => setFotosPreviews((prev) => [...prev, e.target?.result as string]);
       reader.readAsDataURL(file);
