@@ -44,6 +44,9 @@ export default function CriarPage() {
   const [fotosPreviews, setFotosPreviews] = useState<string[]>([]);
   const [pixModal, setPixModal] = useState<{ paymentId: number; qrCode: string; qrCodeBase64: string; valor: number; slug: string } | null>(null);
   const [pixCopiado, setPixCopiado] = useState(false);
+  const [pixExpirado, setPixExpirado] = useState(false);
+  const [pixRenovando, setPixRenovando] = useState(false);
+  const [pixSegsRestantes, setPixSegsRestantes] = useState(30 * 60);
   const [buscaMusica, setBuscaMusica] = useState("");
   const [buscaResultados, setBuscaResultados] = useState<YTResult[]>([]);
   const [buscando, setBuscando] = useState(false);
@@ -182,16 +185,28 @@ export default function CriarPage() {
 
   const preco = form.premium ? "R$ 19,90" : "R$ 9,90";
 
-  // Polling para detectar pagamento aprovado
+  // Polling + countdown ao abrir modal Pix
   useEffect(() => {
     if (!pixModal) return;
-    const interval = setInterval(async () => {
+    setPixExpirado(false);
+    setPixSegsRestantes(30 * 60);
+
+    // Countdown visual de 30 min
+    const countdown = setInterval(() => {
+      setPixSegsRestantes(s => {
+        if (s <= 1) { clearInterval(countdown); setPixExpirado(true); return 0; }
+        return s - 1;
+      });
+    }, 1000);
+
+    // Polling de status a cada 3s
+    const polling = setInterval(async () => {
       try {
         const res = await fetch(`/api/pagamento/status?id=${pixModal.paymentId}`);
         const data = await res.json();
         if (data.status === "approved") {
-          clearInterval(interval);
-          // Ativa o presente
+          clearInterval(polling);
+          clearInterval(countdown);
           await fetch("/api/pagamento/ativar", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -201,8 +216,27 @@ export default function CriarPage() {
         }
       } catch { /* ignora */ }
     }, 3000);
-    return () => clearInterval(interval);
+
+    return () => { clearInterval(polling); clearInterval(countdown); };
   }, [pixModal]);
+
+  const renovarPix = async () => {
+    if (!pixModal || pixRenovando) return;
+    setPixRenovando(true);
+    try {
+      const res = await fetch("/api/pagamento/criar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: pixModal.slug }),
+      });
+      const data = await res.json();
+      if (data.paymentId) {
+        setPixModal(prev => prev ? { ...prev, paymentId: data.paymentId, qrCode: data.qrCode, qrCodeBase64: data.qrCodeBase64 } : prev);
+        setPixExpirado(false);
+      }
+    } catch { /* ignora */ }
+    setPixRenovando(false);
+  };
 
   const copiarPix = () => {
     if (!pixModal) return;
@@ -287,14 +321,30 @@ export default function CriarPage() {
                 </span>
               </button>
 
-              {/* Aguardando confirmação */}
-              <div className="mt-4 flex items-center justify-center gap-2 text-white/40 text-xs">
-                <div className="w-3 h-3 rounded-full border-2 border-[#e84393] border-t-transparent animate-spin" />
-                Aguardando confirmação do pagamento...
-              </div>
-              <p className="text-center text-white/25 text-xs mt-2">
-                Após o pagamento, você será redirecionado automaticamente
-              </p>
+              {/* Estado: expirado ou aguardando */}
+              {pixExpirado ? (
+                <div className="mt-4 text-center">
+                  <p className="text-yellow-400 text-sm font-semibold mb-3">⚠️ QR Code expirado</p>
+                  <button
+                    onClick={renovarPix}
+                    disabled={pixRenovando}
+                    className="w-full py-3 rounded-2xl font-bold text-white transition-all"
+                    style={{ background: "linear-gradient(135deg, #e84393, #c0306f)" }}
+                  >
+                    {pixRenovando ? "Gerando novo código..." : "🔄 Gerar novo código"}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="mt-4 flex items-center justify-center gap-2 text-white/40 text-xs">
+                    <div className="w-3 h-3 rounded-full border-2 border-[#e84393] border-t-transparent animate-spin" />
+                    Aguardando confirmação do pagamento...
+                  </div>
+                  <p className="text-center text-white/25 text-xs mt-2">
+                    Expira em {Math.floor(pixSegsRestantes / 60)}:{String(pixSegsRestantes % 60).padStart(2, "0")} · Após o pagamento você será redirecionado
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>

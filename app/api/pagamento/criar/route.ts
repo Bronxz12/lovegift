@@ -23,11 +23,15 @@ export async function POST(req: NextRequest) {
 
     const payment = new Payment(client);
 
+    // Expira em 30 minutos
+    const expiracao = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
     const result = await payment.create({
       body: {
         transaction_amount: preco,
         description: titulo,
         payment_method_id: "pix",
+        date_of_expiration: expiracao,
         payer: {
           email: presente.email || "comprador@lovegift.art.br",
         },
