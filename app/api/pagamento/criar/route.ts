@@ -33,9 +33,12 @@ export async function POST(req: NextRequest) {
             quantity: 1,
             unit_price: preco,
             currency_id: "BRL",
+            category_id: "services",
           },
         ],
-        payer: presente.email ? { email: presente.email } : undefined,
+        payer: {
+          email: presente.email || "comprador@lovegift.art.br",
+        },
         back_urls: {
           success: `${baseUrl}/presente/${slug}?pago=1`,
           failure: `${baseUrl}/criar?erro=pagamento`,
