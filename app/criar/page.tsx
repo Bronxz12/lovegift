@@ -33,7 +33,7 @@ const MOLDURAS = [
   { id: "luxo", label: "Luxo", emoji: "👑", desc: "Detalhes dourados premium" },
 ];
 
-type YTResult = { videoId: string; title: string; channel: string; thumbnail: string; url: string };
+type YTResult = { videoId: string; title: string; channel: string; thumbnail: string; url: string; previewUrl?: string };
 
 export default function CriarPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -81,7 +81,8 @@ export default function CriarPage() {
   const selecionarMusica = (item: YTResult) => {
     setMusicaSelecionada(item);
     set("musica", item.title.replace(/\s*\(.*?\)\s*/g, "").trim());
-    set("musicaUrl", item.url);
+    // Salva o previewUrl (MP3 direto) em vez da URL da página do iTunes
+    set("musicaUrl", item.previewUrl || item.url);
     setBuscaResultados([]);
     setBuscaMusica("");
   };

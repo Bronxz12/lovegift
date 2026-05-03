@@ -561,6 +561,8 @@ export default function PresentePage() {
     : null;
 
   const youtubeId = presente.musicaUrl ? getYoutubeId(presente.musicaUrl) : null;
+  // iTunes retorna preview como .m4a — audio nativo, funciona em qualquer device
+  const previewUrl = presente.musicaUrl?.includes(".m4a") ? presente.musicaUrl : null;
 
   if (!aberto) {
     return (
@@ -806,58 +808,61 @@ export default function PresentePage() {
       <section className="max-w-2xl mx-auto px-4 mb-16">
         <h2 className="text-center font-bold mb-6 text-sm uppercase tracking-widest opacity-60">{oc.musicaTitulo}</h2>
         <div className="rounded-3xl overflow-hidden shadow-xl" style={{ background: "#111", border: "1px solid rgba(232,67,147,0.2)" }}>
-          {/* Card com info + botão play */}
-          {!musicaTocando && (
-            <div className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
-                  style={{ background: "linear-gradient(135deg, rgba(232,67,147,0.2), rgba(192,48,111,0.2))", border: "1px solid rgba(232,67,147,0.2)" }}>
-                  🎵
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Música escolhida</p>
-                  <p className="font-bold text-lg text-white truncate">{presente.musica}</p>
-                </div>
-                {youtubeId && (
-                  <button
-                    onClick={() => setMusicaTocando(true)}
-                    className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 transition-all hover:scale-110 active:scale-95"
-                    style={{ background: "linear-gradient(135deg, #e84393, #c0306f)", boxShadow: "0 8px 24px rgba(232,67,147,0.5)" }}
-                  >
-                    <span className="text-white text-xl ml-1">▶</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
 
-          {/* Player YouTube — aparece ao clicar play */}
-          {musicaTocando && youtubeId && (
-            <>
-              <div className="px-5 pt-5 pb-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-end gap-0.5 h-4">
+          {/* Cabeçalho com nome da música + botão play */}
+          <div className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, rgba(232,67,147,0.2), rgba(192,48,111,0.2))", border: "1px solid rgba(232,67,147,0.2)" }}>
+                {musicaTocando ? (
+                  <div className="flex items-end gap-0.5 h-5">
                     {[3,5,4,6,3].map((h, i) => (
                       <div key={i} className="w-0.5 rounded-full"
                         style={{ height: `${h * 2}px`, background: "#e84393",
                           animation: `bar-dance ${0.4 + i * 0.1}s ${i * 0.08}s ease-in-out infinite` }} />
                     ))}
                   </div>
-                  <p className="text-white text-sm font-semibold truncate max-w-[200px]">{presente.musica}</p>
-                </div>
-                <button onClick={() => setMusicaTocando(false)} className="text-white/30 hover:text-white/60 text-sm">✕</button>
+                ) : "🎵"}
               </div>
-              <div className="aspect-video">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&loop=1&playlist=${youtubeId}&rel=0`}
-                  title="música"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  className="w-full h-full"
-                />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-white/40 uppercase tracking-widest mb-1">
+                  {musicaTocando ? "Tocando agora" : "Música escolhida"}
+                </p>
+                <p className="font-bold text-lg text-white truncate">{presente.musica}</p>
               </div>
-            </>
+              {/* Botão play/pause — aparece se tem áudio disponível */}
+              {(previewUrl || youtubeId) && (
+                <button
+                  onClick={() => setMusicaTocando(t => !t)}
+                  className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 transition-all hover:scale-110 active:scale-95"
+                  style={{ background: musicaTocando ? "rgba(232,67,147,0.3)" : "linear-gradient(135deg, #e84393, #c0306f)", boxShadow: musicaTocando ? "none" : "0 8px 24px rgba(232,67,147,0.5)", border: musicaTocando ? "1px solid rgba(232,67,147,0.5)" : "none" }}
+                >
+                  <span className="text-white text-xl" style={{ marginLeft: musicaTocando ? 0 : "3px" }}>
+                    {musicaTocando ? "⏸" : "▶"}
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Player de áudio nativo (iTunes preview .m4a) */}
+          {musicaTocando && previewUrl && (
+            // eslint-disable-next-line jsx-a11y/media-has-caption
+            <audio autoPlay loop src={previewUrl} style={{ display: "none" }}
+              onEnded={() => {}} />
+          )}
+
+          {/* Player YouTube (quando URL for YouTube) */}
+          {musicaTocando && youtubeId && !previewUrl && (
+            <div className="aspect-video">
+              <iframe
+                width="100%" height="100%"
+                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&loop=1&playlist=${youtubeId}&rel=0`}
+                title="música"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                className="w-full h-full"
+              />
+            </div>
           )}
         </div>
       </section>
