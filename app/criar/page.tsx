@@ -348,11 +348,6 @@ export default function CriarPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2 text-white/70">Data especial (opcional)</label>
-                <input type="date" value={form.dataEspecial} onChange={(e) => set("dataEspecial", e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#e84393]/50 transition-colors" />
-              </div>
-              <div>
                 <label className="block text-sm font-medium mb-2 text-white/70">
                   Mensagem pessoal <span className="text-white/30 font-normal">{contadorMensagem}/500</span>
                 </label>
@@ -410,8 +405,8 @@ export default function CriarPage() {
         {etapa === 3 && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">A música de vocês 🎵</h1>
-              <p className="text-white/50">Busque a trilha sonora do relacionamento</p>
+              <h1 className="text-3xl font-bold mb-2">A música favorita dela 🎵</h1>
+              <p className="text-white/50">Escolha a música que vai tocar quando ela abrir o presente</p>
             </div>
 
             {musicaSelecionada && (

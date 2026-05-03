@@ -269,6 +269,7 @@ export default function PresentePage() {
   const [fotoAtual, setFotoAtual] = useState(0);
   const [qrCode, setQrCode] = useState("");
   const [aberto, setAberto] = useState(false);
+  const [musicaTocando, setMusicaTocando] = useState(false);
   const [wrappedAberto, setWrappedAberto] = useState(false);
   const [copiado, setCopiado] = useState(false);
   const [upsellAberto, setUpsellAberto] = useState(false);
@@ -618,7 +619,7 @@ export default function PresentePage() {
           <p className="text-white text-xl font-bold mb-10">{presente.nomeRemetente}</p>
 
           <button
-            onClick={() => setAberto(true)}
+            onClick={() => { setAberto(true); setMusicaTocando(true); }}
             className="w-full text-white font-bold px-10 py-5 rounded-2xl transition-all hover:scale-105 text-lg relative overflow-hidden"
             style={{ background: "linear-gradient(135deg, #e84393 0%, #c0306f 100%)", boxShadow: "0 16px 48px rgba(232,67,147,0.5)" }}
           >
@@ -632,6 +633,41 @@ export default function PresentePage() {
 
   return (
     <div className={`min-h-screen ${tema.bg} ${tema.text} pb-28`}>
+
+      {/* ── Iframe oculto para autoplay da música ── */}
+      {musicaTocando && youtubeId && (
+        <iframe
+          src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&loop=1&playlist=${youtubeId}&controls=0&modestbranding=1`}
+          allow="autoplay"
+          className="hidden"
+          aria-hidden="true"
+          title="música"
+        />
+      )}
+
+      {/* ── Pill "Tocando agora" ── */}
+      {musicaTocando && presente?.musica && (
+        <div
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-full shadow-xl"
+          style={{ background: "rgba(13,0,8,0.92)", border: "1px solid rgba(232,67,147,0.35)", backdropFilter: "blur(12px)", maxWidth: "90vw" }}
+        >
+          {/* Equalizador animado */}
+          <div className="flex items-end gap-0.5 h-4 flex-shrink-0">
+            {[3,5,4,6,3].map((h, i) => (
+              <div key={i} className="w-0.5 rounded-full"
+                style={{ height: `${h * 2}px`, background: "#e84393",
+                  animation: `bar-dance ${0.4 + i * 0.1}s ${i * 0.08}s ease-in-out infinite` }} />
+            ))}
+          </div>
+          <span className="text-white/50 text-xs">Tocando agora</span>
+          <span className="text-white text-xs font-semibold truncate" style={{ maxWidth: "180px" }}>{presente.musica}</span>
+          <button
+            onClick={() => setMusicaTocando(false)}
+            className="text-white/30 hover:text-white/70 text-sm flex-shrink-0 ml-1"
+          >✕</button>
+        </div>
+      )}
+
       {wrappedAberto && (
         <Wrapped presente={presente} onClose={() => setWrappedAberto(false)} />
       )}
