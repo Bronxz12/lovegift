@@ -13,14 +13,23 @@ type Foto = { id: string; url: string; ordem: number };
 
 type OcasiaoConfig = {
   emoji: string;
-  cor: string;          // classe tailwind para accent
-  corHex: string;       // hex para inline styles
-  titulo: string;       // frase da abertura
-  subtitulo: string;    // frase secundária
+  cor: string;
+  corHex: string;
+  titulo: string;
+  subtitulo: string;
   confettiCores: string[];
   timelineInicio: string;
   timelineHoje: string;
   contadorLabel: string;
+  // textos dinâmicos por contexto
+  fotosTitulo: string;        // título da seção de fotos
+  musicaTitulo: string;       // título da seção de música
+  jornadaTitulo: string;      // título da seção de linha do tempo
+  wrappedBtn: string;         // botão flutuante
+  diasSufixo: string;         // "juntos" / "de amor" / "de conquistas"
+  mesesSufixo: string;        // "meses juntos" / "meses de amor"
+  encerramentoFrase: string;  // frase final antes dos dias
+  encerramento: string;       // label do te ama
 };
 
 const OCASIAO_CONFIG: Record<string, OcasiaoConfig> = {
@@ -30,6 +39,14 @@ const OCASIAO_CONFIG: Record<string, OcasiaoConfig> = {
     confettiCores: ["#e84393","#ff6eb4","#ffffff","#c0306f","#ffb3d9"],
     timelineInicio: "O começo da nossa história", timelineHoje: "Mais um capítulo lindo",
     contadorLabel: "juntos há",
+    fotosTitulo: "📸 Nossa história em fotos",
+    musicaTitulo: "🎵 Nossa música",
+    jornadaTitulo: "🗓️ Nossa jornada",
+    wrappedBtn: "▶ Ver nossa história",
+    diasSufixo: "juntos",
+    mesesSufixo: "meses juntos",
+    encerramentoFrase: "Já são",
+    encerramento: "te ama",
   },
   "Aniversário de casamento": {
     emoji: "💍", cor: "text-[#f5c518]", corHex: "#f5c518",
@@ -37,6 +54,14 @@ const OCASIAO_CONFIG: Record<string, OcasiaoConfig> = {
     confettiCores: ["#f5c518","#fff8dc","#ffffff","#e8b400","#fffacd"],
     timelineInicio: "O dia em que nos tornamos um", timelineHoje: "Nossa união continua forte",
     contadorLabel: "casados há",
+    fotosTitulo: "📸 Nossa história em fotos",
+    musicaTitulo: "🎵 Nossa música",
+    jornadaTitulo: "🗓️ Nossa jornada",
+    wrappedBtn: "▶ Ver nossa história",
+    diasSufixo: "casados",
+    mesesSufixo: "meses casados",
+    encerramentoFrase: "Já são",
+    encerramento: "te ama",
   },
   "Dia dos Namorados": {
     emoji: "❤️", cor: "text-[#ff4466]", corHex: "#ff4466",
@@ -44,6 +69,14 @@ const OCASIAO_CONFIG: Record<string, OcasiaoConfig> = {
     confettiCores: ["#ff4466","#ff8099","#ffffff","#cc0033","#ffb3c1"],
     timelineInicio: "O início da nossa história de amor", timelineHoje: "Celebrando nosso amor",
     contadorLabel: "juntos há",
+    fotosTitulo: "📸 Nossa história em fotos",
+    musicaTitulo: "🎵 Nossa música",
+    jornadaTitulo: "🗓️ Nossa jornada",
+    wrappedBtn: "▶ Ver nossa história",
+    diasSufixo: "juntos",
+    mesesSufixo: "meses juntos",
+    encerramentoFrase: "Já são",
+    encerramento: "te ama",
   },
   "Pedido de namoro": {
     emoji: "💝", cor: "text-[#e84393]", corHex: "#e84393",
@@ -51,6 +84,14 @@ const OCASIAO_CONFIG: Record<string, OcasiaoConfig> = {
     confettiCores: ["#e84393","#ff6eb4","#ffffff","#c0306f","#ffb3d9"],
     timelineInicio: "O momento que tudo mudou", timelineHoje: "O começo da nossa história",
     contadorLabel: "desde que te conheci",
+    fotosTitulo: "📸 Momentos especiais",
+    musicaTitulo: "🎵 Nossa música",
+    jornadaTitulo: "🗓️ Nossa história",
+    wrappedBtn: "▶ Ver nossa história",
+    diasSufixo: "desde que te conheci",
+    mesesSufixo: "meses juntos",
+    encerramentoFrase: "Já são",
+    encerramento: "te ama",
   },
   "Aniversário": {
     emoji: "🎂", cor: "text-[#a78bfa]", corHex: "#a78bfa",
@@ -58,6 +99,14 @@ const OCASIAO_CONFIG: Record<string, OcasiaoConfig> = {
     confettiCores: ["#a78bfa","#f472b6","#fbbf24","#34d399","#60a5fa"],
     timelineInicio: "Desde que você chegou ao mundo", timelineHoje: "Mais um ano incrível",
     contadorLabel: "anos de vida",
+    fotosTitulo: "📸 Memórias especiais",
+    musicaTitulo: "🎵 A música escolhida",
+    jornadaTitulo: "🗓️ Sua trajetória",
+    wrappedBtn: "▶ Ver o presente",
+    diasSufixo: "de vida",
+    mesesSufixo: "meses de vida",
+    encerramentoFrase: "Já são",
+    encerramento: "te deseja feliz aniversário",
   },
   "Aniversário de 15 anos": {
     emoji: "👑", cor: "text-[#f59e0b]", corHex: "#f59e0b",
@@ -65,6 +114,14 @@ const OCASIAO_CONFIG: Record<string, OcasiaoConfig> = {
     confettiCores: ["#f59e0b","#fcd34d","#ffffff","#d97706","#fef3c7"],
     timelineInicio: "Seu primeiro dia nesse mundo", timelineHoje: "15 anos de pura alegria",
     contadorLabel: "anos de vida",
+    fotosTitulo: "📸 Sua história em fotos",
+    musicaTitulo: "🎵 Sua música",
+    jornadaTitulo: "🗓️ Sua trajetória",
+    wrappedBtn: "▶ Ver o presente",
+    diasSufixo: "de vida",
+    mesesSufixo: "meses de vida",
+    encerramentoFrase: "Já são",
+    encerramento: "te ama",
   },
   "Aniversário de 18 anos": {
     emoji: "🎉", cor: "text-[#6366f1]", corHex: "#6366f1",
@@ -72,6 +129,14 @@ const OCASIAO_CONFIG: Record<string, OcasiaoConfig> = {
     confettiCores: ["#6366f1","#a78bfa","#f472b6","#fbbf24","#34d399"],
     timelineInicio: "Seu primeiro dia nesse mundo", timelineHoje: "18 anos de conquistas",
     contadorLabel: "anos de vida",
+    fotosTitulo: "📸 Sua história em fotos",
+    musicaTitulo: "🎵 Sua música",
+    jornadaTitulo: "🗓️ Sua trajetória",
+    wrappedBtn: "▶ Ver o presente",
+    diasSufixo: "de vida",
+    mesesSufixo: "meses de vida",
+    encerramentoFrase: "Já são",
+    encerramento: "te ama",
   },
   "Dia das Mães": {
     emoji: "🌸", cor: "text-[#f472b6]", corHex: "#f472b6",
@@ -79,6 +144,14 @@ const OCASIAO_CONFIG: Record<string, OcasiaoConfig> = {
     confettiCores: ["#f472b6","#fb7185","#ffffff","#ec4899","#fce7f3"],
     timelineInicio: "Desde que você me deu a vida", timelineHoje: "Sempre ao seu lado",
     contadorLabel: "anos de amor incondicional",
+    fotosTitulo: "📸 Momentos com ela",
+    musicaTitulo: "🎵 A música favorita dela",
+    jornadaTitulo: "🗓️ A história de vocês",
+    wrappedBtn: "▶ Ver Wrapped de Mãe 🌸",
+    diasSufixo: "de amor incondicional",
+    mesesSufixo: "meses de amor",
+    encerramentoFrase: "São",
+    encerramento: "te ama, mãe",
   },
   "Dia dos Pais": {
     emoji: "💙", cor: "text-[#3b82f6]", corHex: "#3b82f6",
@@ -86,6 +159,14 @@ const OCASIAO_CONFIG: Record<string, OcasiaoConfig> = {
     confettiCores: ["#3b82f6","#60a5fa","#ffffff","#1d4ed8","#bfdbfe"],
     timelineInicio: "Desde que você me mostrou o caminho", timelineHoje: "Sempre meu exemplo",
     contadorLabel: "anos sendo meu herói",
+    fotosTitulo: "📸 Momentos com ele",
+    musicaTitulo: "🎵 A música favorita dele",
+    jornadaTitulo: "🗓️ A história de vocês",
+    wrappedBtn: "▶ Ver Wrapped de Pai 💙",
+    diasSufixo: "de amor e gratidão",
+    mesesSufixo: "meses de amor",
+    encerramentoFrase: "São",
+    encerramento: "te ama, pai",
   },
   "Natal": {
     emoji: "🎄", cor: "text-[#22c55e]", corHex: "#22c55e",
@@ -93,6 +174,14 @@ const OCASIAO_CONFIG: Record<string, OcasiaoConfig> = {
     confettiCores: ["#22c55e","#ef4444","#ffffff","#fbbf24","#86efac"],
     timelineInicio: "Desde o nosso primeiro Natal juntos", timelineHoje: "Mais um Natal especial",
     contadorLabel: "natais juntos",
+    fotosTitulo: "📸 Memórias especiais",
+    musicaTitulo: "🎵 A música do Natal",
+    jornadaTitulo: "🗓️ Momentos juntos",
+    wrappedBtn: "▶ Ver o presente",
+    diasSufixo: "de momentos especiais",
+    mesesSufixo: "meses juntos",
+    encerramentoFrase: "Já são",
+    encerramento: "te ama",
   },
   "Formatura": {
     emoji: "🎓", cor: "text-[#8b5cf6]", corHex: "#8b5cf6",
@@ -100,6 +189,14 @@ const OCASIAO_CONFIG: Record<string, OcasiaoConfig> = {
     confettiCores: ["#8b5cf6","#a78bfa","#fbbf24","#ffffff","#ede9fe"],
     timelineInicio: "O primeiro dia de uma grande jornada", timelineHoje: "A conquista de um sonho",
     contadorLabel: "anos de dedicação",
+    fotosTitulo: "📸 Sua trajetória em fotos",
+    musicaTitulo: "🎵 A música da conquista",
+    jornadaTitulo: "🗓️ Sua jornada",
+    wrappedBtn: "▶ Ver o presente",
+    diasSufixo: "de dedicação",
+    mesesSufixo: "meses de esforço",
+    encerramentoFrase: "Foram",
+    encerramento: "está muito orgulhoso de você",
   },
 };
 
@@ -110,6 +207,14 @@ const getOcasiaoConfig = (ocasiao: string): OcasiaoConfig =>
     confettiCores: ["#e84393","#ff6eb4","#ffffff","#c0306f","#ffb3d9"],
     timelineInicio: "O começo de tudo", timelineHoje: "Mais um capítulo lindo",
     contadorLabel: "juntos há",
+    fotosTitulo: "📸 Momentos especiais",
+    musicaTitulo: "🎵 Música escolhida",
+    jornadaTitulo: "🗓️ A jornada",
+    wrappedBtn: "▶ Ver o presente",
+    diasSufixo: "de memórias",
+    mesesSufixo: "meses",
+    encerramentoFrase: "Já são",
+    encerramento: "te ama",
   };
 type Presente = {
   id: string;
@@ -583,7 +688,7 @@ export default function PresentePage() {
           className="flex items-center gap-2 text-white font-bold px-7 py-3.5 rounded-full shadow-2xl transition-all hover:scale-105 whitespace-nowrap"
           style={{ background: "linear-gradient(135deg, #e84393 0%, #c0306f 100%)", boxShadow: "0 8px 32px rgba(232,67,147,0.55)" }}
         >
-          <span>▶</span> Ver nossa história
+          {oc.wrappedBtn}
         </button>
       </div>
 
@@ -642,7 +747,7 @@ export default function PresentePage() {
           {diasJuntos !== null && diasJuntos > 0 && (
             <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
               <p className={`text-3xl font-black ${tema.accent}`}>{Math.floor(diasJuntos / 30)}</p>
-              <p className="text-xs opacity-50 uppercase tracking-widest mt-1">meses juntos</p>
+              <p className="text-xs opacity-50 uppercase tracking-widest mt-1">{oc.mesesSufixo}</p>
             </div>
           )}
           {presente.dataEspecial && (
@@ -679,7 +784,7 @@ export default function PresentePage() {
       {/* BLOCO 3 — Slideshow de Fotos */}
       {presente.fotos.length > 0 && (
         <section className="mb-16">
-          <h2 className="text-center font-bold mb-8 px-4 text-sm uppercase tracking-widest opacity-60">📸 Nossa história em fotos</h2>
+          <h2 className="text-center font-bold mb-8 px-4 text-sm uppercase tracking-widest opacity-60">{oc.fotosTitulo}</h2>
           <div className="relative max-w-lg mx-auto px-4">
             <div className="aspect-[4/5] rounded-3xl overflow-hidden relative shadow-2xl">
               {presente.fotos.map((foto, i) => (
@@ -743,7 +848,7 @@ export default function PresentePage() {
 
       {/* BLOCO 4 — Música */}
       <section className="max-w-2xl mx-auto px-4 mb-16">
-        <h2 className="text-center font-bold mb-6 text-sm uppercase tracking-widest opacity-60">🎵 Nossa música</h2>
+        <h2 className="text-center font-bold mb-6 text-sm uppercase tracking-widest opacity-60">{oc.musicaTitulo}</h2>
         <div className="bg-[#111] rounded-3xl overflow-hidden border border-white/10 shadow-xl">
           <div className="p-6">
             <div className="flex items-center gap-4">
@@ -774,7 +879,7 @@ export default function PresentePage() {
 
       {/* BLOCO 5 — Linha do Tempo */}
       <section className="max-w-2xl mx-auto px-4 mb-16">
-        <h2 className="text-center font-bold mb-8 text-sm uppercase tracking-widest opacity-60">🗓️ Nossa jornada</h2>
+        <h2 className="text-center font-bold mb-8 text-sm uppercase tracking-widest opacity-60">{oc.jornadaTitulo}</h2>
         <div className="relative pl-8">
           <div className="absolute left-3 top-2 bottom-2 w-px bg-gradient-to-b from-[#e84393]/50 via-[#e84393]/20 to-transparent" />
           {[
@@ -813,11 +918,11 @@ export default function PresentePage() {
       <section className="text-center px-4 mb-10">
         <div className={`text-6xl ${tema.accent} animate-pulse-heart mb-5`} style={{ filter: "drop-shadow(0 0 20px rgba(232,67,147,0.4))" }}>♥</div>
         <h2 className="text-3xl md:text-4xl font-black mb-3">
-          {presente.nomeRemetente} te ama ♥
+          {presente.nomeRemetente} {oc.encerramento} ♥
         </h2>
         {diasJuntos !== null && diasJuntos > 0 && (
           <p className="text-base opacity-50 mb-10">
-            Já são <strong className={`${tema.accent} opacity-100`}>{diasJuntos.toLocaleString("pt-BR")} dias</strong> juntos
+            {oc.encerramentoFrase} <strong className={`${tema.accent} opacity-100`}>{diasJuntos.toLocaleString("pt-BR")} dias</strong> {oc.diasSufixo}
           </p>
         )}
       </section>

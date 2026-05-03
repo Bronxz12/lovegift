@@ -293,7 +293,11 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
             style={{ background: "linear-gradient(180deg, #0f0010 0%, #1a0020 100%)" }}>
             {/* Título no topo */}
             <div className="pt-14 px-5 pb-3 text-center" style={{ animation: "slide-up 0.4s ease both" }}>
-              <p className="text-white text-base font-bold">Uma retrospectiva do nosso amor 🌸🥰</p>
+              <p className="text-white text-base font-bold">
+                {["Dia das Mães","Dia dos Pais"].includes(presente.ocasiao)
+                  ? "Uma retrospectiva feita com amor 🌸"
+                  : "Uma retrospectiva do nosso amor 🥰"}
+              </p>
             </div>
 
             {/* Foto de capa */}
@@ -372,11 +376,15 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
             <div className="mx-5 mt-3 rounded-2xl p-4"
               style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.07)", animation: "slide-up 0.5s 0.2s ease both" }}>
               <p className="text-white text-xl font-black">
-                {presente.nomeRemetente} e {presente.nomeDestinatario}
+                {["Dia das Mães","Dia dos Pais"].includes(presente.ocasiao)
+                  ? `${presente.nomeRemetente} para ${presente.nomeDestinatario}`
+                  : `${presente.nomeRemetente} e ${presente.nomeDestinatario}`}
               </p>
               {presente.dataEspecial && (
                 <p className="text-white/40 text-xs mt-1">
-                  Uma história de amor desde {new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
+                  {["Dia das Mães","Dia dos Pais"].includes(presente.ocasiao)
+                    ? `Uma história de amor desde ${new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}`
+                    : `Uma história de amor desde ${new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}`}
                 </p>
               )}
 
@@ -508,11 +516,15 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
 
               {/* Nossa Conexão */}
               <div className="text-center mb-5" style={{ animation: "slide-up 0.5s 0.2s ease both" }}>
-                <p className="text-white/35 text-xs uppercase tracking-widest">Nosso Amor</p>
+                <p className="text-white/35 text-xs uppercase tracking-widest">
+                  {["Dia das Mães"].includes(presente.ocasiao) ? "Uma Homenagem Especial 🌸" :
+                   ["Dia dos Pais"].includes(presente.ocasiao) ? "Uma Homenagem Especial 💙" :
+                   "Nosso Amor"}
+                </p>
                 <h2 className="text-3xl font-black text-white mt-1">
-                  {presente.nomeRemetente}{" "}
-                  <span className="text-white/25">&</span>{" "}
-                  {presente.nomeDestinatario}
+                  {["Dia das Mães","Dia dos Pais"].includes(presente.ocasiao)
+                    ? `${presente.nomeRemetente} para ${presente.nomeDestinatario}`
+                    : <>{presente.nomeRemetente}{" "}<span className="text-white/25">&</span>{" "}{presente.nomeDestinatario}</>}
                 </h2>
               </div>
 
