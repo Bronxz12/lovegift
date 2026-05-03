@@ -631,48 +631,6 @@ export default function PresentePage() {
     <div className={`min-h-screen ${tema.bg} ${tema.text} pb-28`}>
 
       {/* ── Iframe oculto para autoplay da música ── */}
-      {/* ── Mini player de música fixo no topo ── */}
-      {youtubeId && (
-        <div
-          className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
-          style={{
-            transform: musicaTocando ? "translateY(0)" : "translateY(-110%)",
-            background: "rgba(10,0,6,0.97)",
-            borderBottom: "1px solid rgba(232,67,147,0.25)",
-            backdropFilter: "blur(16px)",
-          }}
-        >
-          <div className="flex items-center gap-3 px-4 py-2 max-w-2xl mx-auto">
-            {/* Equalizador */}
-            <div className="flex items-end gap-0.5 h-5 flex-shrink-0">
-              {[3,5,4,6,3].map((h, i) => (
-                <div key={i} className="w-0.5 rounded-full"
-                  style={{ height: `${h * 2}px`, background: "#e84393",
-                    animation: musicaTocando ? `bar-dance ${0.4 + i * 0.1}s ${i * 0.08}s ease-in-out infinite` : "none" }} />
-              ))}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-white/40 text-[10px] uppercase tracking-widest leading-none mb-0.5">Tocando agora</p>
-              <p className="text-white text-xs font-semibold truncate">{presente?.musica}</p>
-            </div>
-            {/* YouTube embed visível mas pequeno — necessário para autoplay funcionar */}
-            <div className="rounded-lg overflow-hidden flex-shrink-0" style={{ width: 64, height: 36 }}>
-              <iframe
-                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=${musicaTocando ? 1 : 0}&loop=1&playlist=${youtubeId}&modestbranding=1&rel=0`}
-                allow="autoplay; encrypted-media"
-                width="64"
-                height="36"
-                title="música"
-                style={{ display: "block" }}
-              />
-            </div>
-            <button
-              onClick={() => setMusicaTocando(false)}
-              className="text-white/30 hover:text-white/60 text-lg flex-shrink-0 leading-none"
-            >✕</button>
-          </div>
-        </div>
-      )}
 
       {wrappedAberto && (
         <Wrapped presente={presente} onClose={() => setWrappedAberto(false)} />
@@ -847,30 +805,59 @@ export default function PresentePage() {
       {/* BLOCO 4 — Música */}
       <section className="max-w-2xl mx-auto px-4 mb-16">
         <h2 className="text-center font-bold mb-6 text-sm uppercase tracking-widest opacity-60">{oc.musicaTitulo}</h2>
-        <div className="bg-[#111] rounded-3xl overflow-hidden border border-white/10 shadow-xl">
-          <div className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, rgba(232,67,147,0.2) 0%, rgba(192,48,111,0.2) 100%)", border: "1px solid rgba(232,67,147,0.2)" }}>
-                🎵
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Tocando agora</p>
-                <p className="font-bold text-lg text-white truncate">{presente.musica}</p>
+        <div className="rounded-3xl overflow-hidden shadow-xl" style={{ background: "#111", border: "1px solid rgba(232,67,147,0.2)" }}>
+          {/* Card com info + botão play */}
+          {!musicaTocando && (
+            <div className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+                  style={{ background: "linear-gradient(135deg, rgba(232,67,147,0.2), rgba(192,48,111,0.2))", border: "1px solid rgba(232,67,147,0.2)" }}>
+                  🎵
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Música escolhida</p>
+                  <p className="font-bold text-lg text-white truncate">{presente.musica}</p>
+                </div>
+                {youtubeId && (
+                  <button
+                    onClick={() => setMusicaTocando(true)}
+                    className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 transition-all hover:scale-110 active:scale-95"
+                    style={{ background: "linear-gradient(135deg, #e84393, #c0306f)", boxShadow: "0 8px 24px rgba(232,67,147,0.5)" }}
+                  >
+                    <span className="text-white text-xl ml-1">▶</span>
+                  </button>
+                )}
               </div>
             </div>
-          </div>
-          {youtubeId && (
-            <div className="aspect-video">
-              <iframe
-                width="100%"
-                height="100%"
-                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&loop=1&playlist=${youtubeId}`}
-                title="Nossa música"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
-                className="w-full h-full"
-              />
-            </div>
+          )}
+
+          {/* Player YouTube — aparece ao clicar play */}
+          {musicaTocando && youtubeId && (
+            <>
+              <div className="px-5 pt-5 pb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-end gap-0.5 h-4">
+                    {[3,5,4,6,3].map((h, i) => (
+                      <div key={i} className="w-0.5 rounded-full"
+                        style={{ height: `${h * 2}px`, background: "#e84393",
+                          animation: `bar-dance ${0.4 + i * 0.1}s ${i * 0.08}s ease-in-out infinite` }} />
+                    ))}
+                  </div>
+                  <p className="text-white text-sm font-semibold truncate max-w-[200px]">{presente.musica}</p>
+                </div>
+                <button onClick={() => setMusicaTocando(false)} className="text-white/30 hover:text-white/60 text-sm">✕</button>
+              </div>
+              <div className="aspect-video">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&loop=1&playlist=${youtubeId}&rel=0`}
+                  title="música"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  className="w-full h-full"
+                />
+              </div>
+            </>
           )}
         </div>
       </section>
