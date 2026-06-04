@@ -137,6 +137,11 @@ body {
 }
 .animate-rotate-slow { animation: rotate-slow 20s linear infinite; }
 
+/* Tipografia elegante (serifada) para nomes e números */
+.font-elegante {
+  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+}
+
 /* Mascote flutuando suavemente */
 @keyframes bob {
   0%, 100% { transform: translateY(0); }

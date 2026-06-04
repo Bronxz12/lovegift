@@ -587,8 +587,23 @@ export default function PresentePage() {
       const imgs = (await Promise.all(fotos.map((f) => loadImg(f.url)))).filter(
         (x): x is HTMLImageElement => !!x
       );
-      const qrImg = qrCode ? await loadImg(qrCode) : null;
+      // QR final aponta pro site de vendas (quem vê o vídeo postado vai criar o seu)
+      let qrImg: HTMLImageElement | null = null;
+      try {
+        const qrData = await QRCodeLib.toDataURL("https://lovegift.art.br", {
+          width: 320, margin: 1, color: { dark: "#0a0008", light: "#ffffff" },
+        });
+        qrImg = await loadImg(qrData);
+      } catch { qrImg = null; }
       const mascote = await loadImg("/images/mascote.png");
+      const legendas = [
+        "Meu lugar favorito é ao seu lado",
+        "Cada instante com você é especial",
+        "A gente combina demais",
+        "Você é o meu presente",
+        "Pra sempre, nós dois",
+        "Te amo mais a cada dia",
+      ];
 
       // Fundo de vídeo reutilizável (Veo). Mesma origem → não invalida o canvas.
       const bg = document.createElement("video");
@@ -623,6 +638,22 @@ export default function PresentePage() {
           audioTrack = dest.stream.getAudioTracks()[0] || null;
         } catch { audioTrack = null; }
       }
+
+      // Fonte elegante (Playfair Display) carregada pro canvas
+      try {
+        if (!document.getElementById("lg-playfair")) {
+          const lk = document.createElement("link");
+          lk.id = "lg-playfair"; lk.rel = "stylesheet";
+          lk.href = "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,500&display=swap";
+          document.head.appendChild(lk);
+        }
+        await Promise.all([
+          document.fonts.load("800 80px 'Playfair Display'"),
+          document.fonts.load("600 40px 'Playfair Display'"),
+          document.fonts.load("italic 500 34px 'Playfair Display'"),
+        ]);
+        await document.fonts.ready;
+      } catch { /* usa serifa do sistema */ }
 
       const stream = canvas.captureStream(30);
       if (audioTrack) stream.addTrack(audioTrack);
@@ -680,9 +711,58 @@ export default function PresentePage() {
         }
         ctx.fillText(line.trim(), x, yy); return yy;
       };
+      const SANS = "system-ui, -apple-system, 'Segoe UI', sans-serif";
+      const SERIF = "'Playfair Display', Georgia, serif";
+      const setLS = (v: string) => { try { (ctx as unknown as { letterSpacing: string }).letterSpacing = v; } catch {} };
+      // rótulo: maiúsculo espaçado + fina régua dourada (sem caixa)
+      const label = (text: string, cx: number, cy: number, color = "rgba(255,255,255,0.9)") => {
+        ctx.save();
+        ctx.font = `600 22px ${SANS}`; setLS("5px");
+        ctx.fillStyle = color; ctx.shadowColor = "rgba(0,0,0,0.65)"; ctx.shadowBlur = 8;
+        ctx.fillText(text.toUpperCase(), cx, cy);
+        ctx.restore(); setLS("0px");
+        ctx.save();
+        ctx.strokeStyle = "rgba(245,197,24,0.8)"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(cx - 26, cy + 16); ctx.lineTo(cx + 26, cy + 16); ctx.stroke();
+        ctx.restore();
+      };
+      // título em serifa elegante com glow (sem caixa)
+      const title = (
+        text: string, cx: number, cy: number, size: number,
+        o: { italic?: boolean; weight?: string; color?: string; glow?: string; blur?: number } = {}
+      ) => {
+        const { italic = false, weight = "800", color = "#fff", glow = "rgba(0,0,0,0.55)", blur = 18 } = o;
+        ctx.save();
+        ctx.font = `${italic ? "italic " : ""}${weight} ${size}px ${SERIF}`;
+        ctx.fillStyle = color; ctx.shadowColor = glow; ctx.shadowBlur = blur; ctx.shadowOffsetY = 2;
+        ctx.fillText(text, cx, cy);
+        ctx.restore();
+      };
+      // botão CTA com gradiente
+      const ctaButton = (text: string, cx: number, cy: number, size: number) => {
+        ctx.save();
+        ctx.font = `700 ${size}px ${SANS}`;
+        const w = ctx.measureText(text).width;
+        const padX = size * 0.95, h = size * 2.1, bw = w + padX * 2;
+        ctx.textBaseline = "middle";
+        const g = ctx.createLinearGradient(cx - bw / 2, 0, cx + bw / 2, 0);
+        g.addColorStop(0, "#e84393"); g.addColorStop(1, "#c0306f");
+        rr(cx - bw / 2, cy - h / 2, bw, h, h / 2);
+        ctx.shadowColor = "rgba(232,67,147,0.5)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 6;
+        ctx.fillStyle = g; ctx.fill(); ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+        ctx.fillStyle = "#fff"; ctx.fillText(text, cx, cy);
+        ctx.restore(); ctx.textBaseline = "alphabetic";
+      };
       const drawBg = () => {
         if (bgOk && bg.videoWidth) {
-          try { coverDraw(bg, bg.videoWidth, bg.videoHeight, 0, 0, W, H, 1.05); } catch { /* taint */ }
+          try {
+            // corta os ~15% de baixo do fundo (onde fica a marca d'água do Veo)
+            const vw = bg.videoWidth, vh = bg.videoHeight;
+            const cropH = vh * 0.85;
+            const r = Math.max(W / vw, H / cropH);
+            const dw = vw * r, dh = cropH * r;
+            ctx.drawImage(bg, 0, 0, vw, cropH, (W - dw) / 2, (H - dh) / 2, dw, dh);
+          } catch { /* taint */ }
           ctx.fillStyle = "rgba(13,0,8,0.5)"; ctx.fillRect(0, 0, W, H);
         } else {
           const g = ctx.createLinearGradient(0, 0, W, H);
@@ -703,48 +783,58 @@ export default function PresentePage() {
 
         if (e < T_INTRO) {
           ctx.globalAlpha = Math.min(1, (e / T_INTRO) * 2);
-          if (mascote) ctx.drawImage(mascote, W / 2 - 70, H * 0.24 - 70, 140, 140);
-          ctx.fillStyle = "#ff8fbf"; ctx.font = "600 24px sans-serif";
-          ctx.fillText((presente.ocasiao || "").toUpperCase(), W / 2, H * 0.45);
-          ctx.fillStyle = "#fff"; ctx.font = "bold 60px sans-serif";
-          ctx.fillText(nome, W / 2, H * 0.53);
-          if (rem) { ctx.fillStyle = "rgba(255,255,255,0.65)"; ctx.font = "26px sans-serif"; ctx.fillText(`com amor de ${rem}`, W / 2, H * 0.59); }
+          if (mascote) ctx.drawImage(mascote, W / 2 - 72, H * 0.20 - 72, 144, 144);
+          label(presente.ocasiao || "", W / 2, H * 0.40, "#ffd9e6");
+          title(nome, W / 2, H * 0.51, 92, { glow: "rgba(232,67,147,0.55)", blur: 28 });
+          if (rem) title(`com amor de ${rem}`, W / 2, H * 0.585, 32, { italic: true, weight: "500", color: "rgba(255,255,255,0.88)", glow: "rgba(0,0,0,0.5)", blur: 10 });
+          title("uma história pra chamar de nossa", W / 2, H * 0.66, 24, { italic: true, weight: "500", color: "rgba(255,255,255,0.62)", glow: "rgba(0,0,0,0.45)", blur: 8 });
           ctx.globalAlpha = 1;
         } else if (e < T_INTRO + T_CONT) {
           ctx.globalAlpha = Math.min(1, ((e - T_INTRO) / T_CONT) * 3);
-          ctx.fillStyle = "rgba(255,255,255,0.6)"; ctx.font = "26px sans-serif";
-          ctx.fillText("JUNTOS HÁ", W / 2, H * 0.42);
-          ctx.fillStyle = "#e84393"; ctx.font = "bold 130px sans-serif";
-          ctx.fillText(String(dias), W / 2, H * 0.53);
-          ctx.fillStyle = "#fff"; ctx.font = "bold 38px sans-serif";
-          ctx.fillText("dias de amor", W / 2, H * 0.60);
+          label("O nosso tempo juntos", W / 2, H * 0.36);
+          title(Number(dias).toLocaleString("pt-BR"), W / 2, H * 0.53, 150, { glow: "rgba(232,67,147,0.85)", blur: 44 });
+          title("dias de nós dois", W / 2, H * 0.61, 42, { italic: true, weight: "500", glow: "rgba(0,0,0,0.5)", blur: 12 });
+          title("e cada um deles valeu a pena 💕", W / 2, H * 0.68, 24, { italic: true, weight: "500", color: "rgba(255,255,255,0.62)", glow: "rgba(0,0,0,0.45)", blur: 8 });
           ctx.globalAlpha = 1;
         } else if (e < T_INTRO + T_CONT + T_FOTOS && imgs.length) {
           const idx = Math.min(imgs.length - 1, Math.floor((e - T_INTRO - T_CONT) / T_FOTO));
           const local = ((e - T_INTRO - T_CONT) % T_FOTO) / T_FOTO;
           const im = imgs[idx];
-          const m = 56, cx = m, cy = H * 0.15, cw = W - 2 * m, ch = H * 0.62;
+          const m = 56, cx = m, cy = H * 0.12, cw = W - 2 * m, ch = H * 0.62;
           ctx.save();
-          rr(cx - 5, cy - 5, cw + 10, ch + 10, 36); ctx.fillStyle = "rgba(232,67,147,0.45)"; ctx.fill();
-          rr(cx, cy, cw, ch, 32); ctx.clip();
+          rr(cx - 6, cy - 6, cw + 12, ch + 12, 34);
+          ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8;
+          ctx.fillStyle = "#fff"; ctx.fill();
+          ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+          rr(cx, cy, cw, ch, 30); ctx.clip();
           coverDraw(im, im.naturalWidth, im.naturalHeight, cx, cy, cw, ch, 1.04 + local * 0.08);
           ctx.restore();
-          ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.font = "bold 30px sans-serif";
-          ctx.fillText(`${idx + 1} / ${imgs.length}`, W / 2, cy + ch + 64);
+          ctx.textAlign = "center";
+          title(legendas[idx % legendas.length], W / 2, cy + ch + 60, 30, { italic: true, weight: "500", glow: "rgba(0,0,0,0.55)", blur: 12 });
         } else {
           ctx.globalAlpha = Math.min(1, (e - (T_INTRO + T_CONT + T_FOTOS)) / 0.6);
-          const msgC = msg.length > 120 ? msg.slice(0, 117) + "…" : msg;
-          ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.font = "italic 30px sans-serif";
-          if (msgC) wrap(`"${msgC}"`, W / 2, H * 0.2, W - 130, 42, 5);
-          if (qrImg) {
-            const s = 230;
-            ctx.fillStyle = "#fff"; rr(W / 2 - s / 2 - 12, H * 0.46 - 12, s + 24, s + 24, 16); ctx.fill();
-            ctx.drawImage(qrImg, W / 2 - s / 2, H * 0.46, s, s);
-            ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.font = "24px sans-serif";
-            ctx.fillText("aponte a câmera pra abrir", W / 2, H * 0.46 + s + 50);
+          ctx.textAlign = "center";
+          const msgC = msg.length > 130 ? msg.slice(0, 127) + "…" : msg;
+          if (msgC) {
+            ctx.save();
+            const sg = ctx.createRadialGradient(W / 2, H * 0.18, 0, W / 2, H * 0.18, 380);
+            sg.addColorStop(0, "rgba(8,0,5,0.62)"); sg.addColorStop(1, "transparent");
+            ctx.fillStyle = sg; ctx.fillRect(0, H * 0.06, W, H * 0.26);
+            ctx.font = `italic 500 34px ${SERIF}`; ctx.fillStyle = "#fff";
+            ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 12;
+            wrap(`“${msgC}”`, W / 2, H * 0.155, W - 150, 48, 4);
+            ctx.restore();
           }
-          ctx.fillStyle = "#ff6eb4"; ctx.font = "bold 34px sans-serif";
-          ctx.fillText("❤ Crie o seu em lovegift.art.br", W / 2, H * 0.9);
+          if (qrImg) {
+            const s = 250;
+            ctx.save();
+            ctx.shadowColor = "rgba(0,0,0,0.45)"; ctx.shadowBlur = 22; ctx.shadowOffsetY = 6;
+            ctx.fillStyle = "#fff"; rr(W / 2 - s / 2 - 16, H * 0.42 - 16, s + 32, s + 32, 22); ctx.fill();
+            ctx.restore();
+            ctx.drawImage(qrImg, W / 2 - s / 2, H * 0.42, s, s);
+            label("Aponte a câmera e crie o seu", W / 2, H * 0.42 + s + 50, "rgba(255,255,255,0.9)");
+          }
+          ctaButton("Crie o seu • lovegift.art.br", W / 2, H * 0.9, 27);
           ctx.globalAlpha = 1;
         }
 
@@ -767,7 +857,8 @@ export default function PresentePage() {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
         <div className="text-center">
-          <div className="text-5xl mb-4 animate-pulse-heart">♥</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/icons/icone-coracao.png" alt="" className="w-16 h-16 object-contain mx-auto mb-4 animate-pulse-heart" />
           <p className="text-white/50">Abrindo seu presente...</p>
         </div>
       </div>
@@ -788,6 +879,7 @@ export default function PresentePage() {
 
   const tema = TEMAS[presente.tema] || TEMAS.romantico;
   const oc = getOcasiaoConfig(presente.ocasiao);
+  const ehCoracao = ["❤️", "❤", "💖", "💕", "♥", "💝", "💗", "💘"].includes(oc.emoji);
   const diasJuntos = presente.dataEspecial
     ? differenceInDays(new Date(), new Date(presente.dataEspecial))
     : null;
@@ -835,11 +927,16 @@ export default function PresentePage() {
 
           {/* Emoji animado da ocasião */}
           <div className="relative mb-6">
-            <div className="text-8xl animate-pulse-heart" style={{ filter: `drop-shadow(0 0 40px ${oc.corHex}b3)` }}>{oc.emoji}</div>
+            {ehCoracao ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src="/images/icons/icone-coracao.png" alt="" className="w-28 h-28 object-contain mx-auto animate-pulse-heart" style={{ filter: `drop-shadow(0 0 40px ${oc.corHex}b3)` }} />
+            ) : (
+              <div className="text-8xl animate-pulse-heart" style={{ filter: `drop-shadow(0 0 40px ${oc.corHex}b3)` }}>{oc.emoji}</div>
+            )}
           </div>
 
           <p className="text-white/30 text-xs uppercase tracking-widest mb-2">{oc.titulo}</p>
-          <h1 className="text-5xl font-black text-white mb-3 leading-tight">
+          <h1 className="font-elegante text-6xl font-extrabold text-white mb-3 leading-tight">
             {presente.nomeDestinatario}
           </h1>
           <div className="w-12 h-px bg-[#e84393]/40 mx-auto my-5" />
@@ -864,7 +961,23 @@ export default function PresentePage() {
   }
 
   return (
-    <div className={`min-h-screen ${tema.bg} ${tema.text} pb-28`}>
+    <div className={`relative isolate min-h-screen ${tema.bg} ${tema.text} pb-28`}>
+
+      {/* Fundo romântico (temas escuros) */}
+      {(presente.tema === "romantico" || presente.tema === "netflix") && (
+        <>
+          <div
+            aria-hidden
+            className="fixed inset-0 -z-10 pointer-events-none bg-cover bg-center opacity-60"
+            style={{ backgroundImage: "url('/images/fundo-romantico.jpg')" }}
+          />
+          <div
+            aria-hidden
+            className="fixed inset-0 -z-10 pointer-events-none"
+            style={{ background: "linear-gradient(180deg, rgba(10,0,6,0.62) 0%, rgba(10,0,6,0.82) 100%)" }}
+          />
+        </>
+      )}
 
       {/* Overlay de geração de vídeo */}
       {gerandoVideo && (
@@ -910,9 +1023,14 @@ export default function PresentePage() {
             style={{ background: `${oc.corHex}1a`, border: `1px solid ${oc.corHex}33`, color: oc.corHex }}>
             {oc.emoji} {presente.ocasiao}
           </div>
-          <div className="text-6xl mb-5 animate-pulse-heart" style={{ filter: `drop-shadow(0 0 20px ${oc.corHex}66)` }}>{oc.emoji}</div>
+          {ehCoracao ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/images/icons/icone-coracao.png" alt="" className="w-20 h-20 object-contain mx-auto mb-5 animate-pulse-heart" style={{ filter: `drop-shadow(0 0 20px ${oc.corHex}66)` }} />
+          ) : (
+            <div className="text-6xl mb-5 animate-pulse-heart" style={{ filter: `drop-shadow(0 0 20px ${oc.corHex}66)` }}>{oc.emoji}</div>
+          )}
           <p className="text-sm opacity-40 mb-2 uppercase tracking-widest">{oc.titulo}</p>
-          <h1 className="text-5xl md:text-6xl font-black mb-4 leading-tight">
+          <h1 className="font-elegante text-6xl md:text-7xl font-extrabold mb-4 leading-tight">
             {presente.nomeDestinatario}
           </h1>
           <p className="opacity-40 text-base">{oc.subtitulo} — <span className="opacity-80 font-semibold">{presente.nomeRemetente}</span></p>
@@ -921,22 +1039,32 @@ export default function PresentePage() {
 
       {/* CONTADOR AO VIVO */}
       {presente.dataEspecial && (
-        <section className="max-w-2xl mx-auto px-4 mb-16">
-          <p className="text-center text-xs opacity-40 uppercase tracking-widest mb-4">⏳ {oc.contadorLabel}</p>
-          <div className="grid grid-cols-4 gap-3">
-            {[
-              { valor: contador.dias, label: "dias" },
-              { valor: contador.horas, label: "horas" },
-              { valor: contador.minutos, label: "min" },
-              { valor: contador.segundos, label: "seg" },
-            ].map(({ valor, label }) => (
-              <div key={label} className={`${tema.card} border ${tema.border} rounded-2xl p-4 text-center`}>
-                <p className={`text-3xl font-black tabular-nums ${tema.accent}`}>
-                  {String(valor).padStart(2, "0")}
-                </p>
-                <p className="text-xs opacity-50 uppercase tracking-widest mt-1">{label}</p>
-              </div>
-            ))}
+        <section className="max-w-md mx-auto px-4 mb-16">
+          <p className="flex items-center justify-center gap-2 text-center text-xs opacity-50 uppercase tracking-[0.3em] mb-5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/icons/icone-ampulheta.png" alt="" className="w-5 h-5 object-contain" />
+            {oc.contadorLabel}
+          </p>
+          <div className={`${tema.card} border ${tema.border} rounded-3xl px-6 py-9 text-center`}>
+            <p
+              className={`font-elegante font-extrabold tabular-nums leading-none ${tema.accent}`}
+              style={{ fontSize: "clamp(3.5rem, 17vw, 5.5rem)" }}
+            >
+              {contador.dias.toLocaleString("pt-BR")}
+            </p>
+            <p className="text-sm opacity-50 uppercase tracking-[0.25em] mt-3">dias juntos</p>
+            <div className="grid grid-cols-3 gap-3 mt-8">
+              {[
+                { valor: contador.horas, label: "horas" },
+                { valor: contador.minutos, label: "min" },
+                { valor: contador.segundos, label: "seg" },
+              ].map(({ valor, label }) => (
+                <div key={label} className="rounded-2xl py-3" style={{ background: "rgba(255,255,255,0.05)" }}>
+                  <p className={`font-elegante text-2xl font-bold tabular-nums ${tema.accent}`}>{String(valor).padStart(2, "0")}</p>
+                  <p className="text-[10px] opacity-45 uppercase tracking-widest mt-1">{label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}
@@ -945,18 +1073,24 @@ export default function PresentePage() {
       <section className="max-w-2xl mx-auto px-4 mb-16">
         <div className="grid grid-cols-2 gap-3">
           <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
-            <p className={`text-3xl font-black ${tema.accent}`}>{presente.fotos.length}</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/icons/icone-camera.png" alt="" className="w-9 h-9 object-contain mx-auto mb-1.5" />
+            <p className={`font-elegante text-4xl font-extrabold ${tema.accent}`}>{presente.fotos.length}</p>
             <p className="text-xs opacity-50 uppercase tracking-widest mt-1">{presente.fotos.length === 1 ? "foto especial" : "fotos especiais"}</p>
           </div>
           {diasJuntos !== null && diasJuntos > 0 && (
             <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
-              <p className={`text-3xl font-black ${tema.accent}`}>{Math.floor(diasJuntos / 30)}</p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/icons/icone-coroa.png" alt="" className="w-9 h-9 object-contain mx-auto mb-1.5" />
+              <p className={`font-elegante text-4xl font-extrabold ${tema.accent}`}>{Math.floor(diasJuntos / 30)}</p>
               <p className="text-xs opacity-50 uppercase tracking-widest mt-1">{oc.mesesSufixo}</p>
             </div>
           )}
           {presente.dataEspecial && (
-            <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center col-span-${diasJuntos !== null && diasJuntos > 0 ? "1" : "2"}`}>
-              <p className={`text-lg font-black ${tema.accent}`}>
+            <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center col-span-${diasJuntos !== null && diasJuntos > 0 ? "1" : "2"} flex flex-col items-center justify-center`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/icons/icone-carta.png" alt="" className="w-9 h-9 object-contain mb-1.5" />
+              <p className={`font-elegante text-xl font-bold ${tema.accent}`}>
                 {new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
               </p>
               <p className="text-xs opacity-50 uppercase tracking-widest mt-1">data especial</p>
@@ -964,8 +1098,9 @@ export default function PresentePage() {
           )}
           {!presente.dataEspecial && (
             <div className={`${tema.card} border ${tema.border} rounded-2xl p-5 text-center`}>
-              <p className="text-2xl">🎵</p>
-              <p className={`text-sm font-semibold ${tema.accent} mt-1 truncate`}>{presente.musica}</p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/icons/icone-musica.png" alt="" className="w-9 h-9 object-contain mx-auto mb-1.5" />
+              <p className={`font-semibold ${tema.accent} mt-1 truncate`}>{presente.musica}</p>
               <p className="text-xs opacity-50 uppercase tracking-widest mt-1">nossa música</p>
             </div>
           )}
@@ -1152,7 +1287,9 @@ export default function PresentePage() {
 
       {/* BLOCO 6 — Encerramento */}
       <section className="text-center px-4 mb-10">
-        <div className={`text-6xl ${tema.accent} animate-pulse-heart mb-5`} style={{ filter: "drop-shadow(0 0 20px rgba(232,67,147,0.4))" }}>♥</div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/icons/icone-coracao.png" alt="" className="w-20 h-20 object-contain mx-auto animate-pulse-heart mb-5" style={{ filter: "drop-shadow(0 0 20px rgba(232,67,147,0.4))" }} />
+
         <h2 className="text-3xl md:text-4xl font-black mb-3">
           {presente.nomeRemetente} {oc.encerramento} ♥
         </h2>

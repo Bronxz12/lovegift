@@ -476,24 +476,20 @@ export default function CriarPage() {
                 </div>
               ))}
               <div>
-                <label className="block text-sm font-medium mb-2 text-white/70">Ocasião</label>
-                <select value={form.ocasiao} onChange={(e) => set("ocasiao", e.target.value)}
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#e84393]/50 transition-colors">
-                  <option value="">Selecione a ocasião</option>
-                  <option value="Dia dos Namorados">❤️ Dia dos Namorados (12 de junho)</option>
-                  <optgroup label="💑 Relacionamentos">
-                    {["Aniversário de namoro", "Aniversário de casamento", "Pedido de namoro", "Reconciliação"].map(o => <option key={o} value={o}>{o}</option>)}
-                  </optgroup>
-                  <optgroup label="🎂 Aniversários">
-                    {["Aniversário", "Aniversário de 15 anos", "Aniversário de 18 anos"].map(o => <option key={o} value={o}>{o}</option>)}
-                  </optgroup>
-                  <optgroup label="🌸 Datas comemorativas">
-                    {["Dia das Mães", "Dia dos Pais", "Dia das Avós", "Dia dos Avôs", "Natal", "Páscoa", "Dia da Mulher"].map(o => <option key={o} value={o}>{o}</option>)}
-                  </optgroup>
-                  <optgroup label="💝 Outros">
-                    {["Só porque sim", "Formatura", "Novo emprego", "Outra"].map(o => <option key={o} value={o}>{o}</option>)}
-                  </optgroup>
-                </select>
+                <label className="block text-sm font-medium mb-2 text-white/70">
+                  Quando tudo começou? 💞
+                </label>
+                <input
+                  type="date"
+                  value={form.dataEspecial}
+                  max={new Date().toISOString().split("T")[0]}
+                  onChange={(e) => set("dataEspecial", e.target.value)}
+                  style={{ colorScheme: "dark" }}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#e84393]/50 transition-colors"
+                />
+                <p className="text-xs text-white/35 mt-2">
+                  A data em que vocês se conheceram (ou começaram a namorar). O presente vai ter um <span className="text-[#e84393]">contador ao vivo</span> de dias, horas e segundos juntos a partir dela.
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2 text-white/70">
