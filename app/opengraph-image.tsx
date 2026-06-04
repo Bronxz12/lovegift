@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "LoveGift — Presente Digital para o Dia das Mães";
+export const alt = "LoveGift — Presente Digital para o Dia dos Namorados";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -56,7 +56,7 @@ export default function OGImage() {
               fontSize: "28px",
             }}
           >
-            🌸
+            ❤️
           </div>
           <span style={{ fontSize: "36px", fontWeight: 900, color: "white" }}>
             <span style={{ color: "#e84393" }}>Love</span>Gift
@@ -75,8 +75,8 @@ export default function OGImage() {
             maxWidth: "900px",
           }}
         >
-          O presente que vai fazer{" "}
-          <span style={{ color: "#e84393" }}>sua mãe chorar.</span>
+          O presente que vai{" "}
+          <span style={{ color: "#e84393" }}>emocionar quem você ama.</span>
         </div>
 
         {/* Subtítulo */}
@@ -104,7 +104,7 @@ export default function OGImage() {
           }}
         >
           <span style={{ fontSize: "24px", color: "white", fontWeight: 700 }}>
-            🌸 Criar agora por R$ 9,90
+            ❤️ Criar agora por R$ 9,90
           </span>
         </div>
 

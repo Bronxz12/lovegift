@@ -136,3 +136,28 @@ body {
   to   { transform: rotate(360deg); }
 }
 .animate-rotate-slow { animation: rotate-slow 20s linear infinite; }
+
+/* Mascote flutuando suavemente */
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+.animate-bob { animation: bob 3.2s ease-in-out infinite; }
+
+/* Pétalas caindo — usado na abertura cinematográfica do /criar */
+@keyframes petal-fall {
+  0%   { transform: translateY(-10vh) translateX(0) rotate(0deg);   opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(110vh) translateX(var(--drift, 40px)) rotate(420deg); opacity: 0; }
+}
+
+/* Respeita usuários que pedem menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

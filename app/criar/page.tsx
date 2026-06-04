@@ -2,6 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
+import AberturaCinematografica from "./AberturaCinematografica";
+import ProgressTrail from "./ProgressTrail";
 
 type FormData = {
   nomeRemetente: string;
@@ -22,6 +26,7 @@ const TEMAS = [
   { id: "romantico", label: "Romântico", desc: "Fundo escuro, tons rosa/vermelho", preview: "bg-gradient-to-br from-pink-950 to-rose-950", accent: "text-pink-400" },
   { id: "minimalista", label: "Minimalista", desc: "Fundo branco, tons clean", preview: "bg-gradient-to-br from-gray-100 to-gray-200", accent: "text-gray-800" },
   { id: "vintage", label: "Vintage", desc: "Fundo creme, tons terrosos", preview: "bg-gradient-to-br from-amber-100 to-orange-100", accent: "text-amber-800" },
+  { id: "netflix", label: "Netflix", desc: "Escuro com vermelho, estilo streaming", preview: "bg-gradient-to-br from-[#141414] to-black", accent: "text-[#E50914]" },
 ];
 
 const MOLDURAS = [
@@ -53,7 +58,7 @@ export default function CriarPage() {
   const [musicaSelecionada, setMusicaSelecionada] = useState<YTResult | null>(null);
   const buscaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [form, setForm] = useState<FormData>({
-    nomeRemetente: "", nomeDestinatario: "", ocasiao: "Dia das Mães", dataEspecial: "",
+    nomeRemetente: "", nomeDestinatario: "", ocasiao: "Dia dos Namorados", dataEspecial: "",
     mensagem: "", musica: "", musicaUrl: "", tema: "romantico", moldura: "nenhuma",
     email: "", fotos: [], premium: false,
   });
@@ -62,6 +67,33 @@ export default function CriarPage() {
 
   const set = (campo: keyof FormData, valor: string | boolean) =>
     setForm((prev) => ({ ...prev, [campo]: valor }));
+
+  // Abertura cinematográfica — toca uma vez por sessão
+  const [intro, setIntro] = useState<boolean | null>(null);
+  useEffect(() => {
+    setIntro(sessionStorage.getItem("lg_intro_seen") !== "1");
+  }, []);
+  const fecharIntro = () => {
+    sessionStorage.setItem("lg_intro_seen", "1");
+    setIntro(false);
+  };
+
+  // Micro-celebração ao concluir uma etapa (só ao avançar, não ao voltar)
+  const etapaAnterior = useRef(1);
+  useEffect(() => {
+    if (etapa > etapaAnterior.current) {
+      confetti({
+        particleCount: 18,
+        spread: 55,
+        startVelocity: 24,
+        scalar: 0.7,
+        origin: { y: 0.16 },
+        colors: ["#e84393", "#ff6eb4", "#f5c518"],
+        disableForReducedMotion: true,
+      });
+    }
+    etapaAnterior.current = etapa;
+  }, [etapa]);
 
   const handleBuscaMusica = (q: string) => {
     setBuscaMusica(q);
@@ -198,6 +230,13 @@ export default function CriarPage() {
 
       if (pagData.paymentId && pagData.qrCode) {
         setCarregando(false);
+        if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).fbq) {
+          (window as unknown as Record<string, (a: string, b: string, c?: Record<string, unknown>) => void>).fbq(
+            "track",
+            "InitiateCheckout",
+            { value: pagData.valor ?? (form.premium ? 19.9 : 9.9), currency: "BRL" }
+          );
+        }
         setPixModal({
           paymentId: pagData.paymentId,
           qrCode: pagData.qrCode,
@@ -279,12 +318,32 @@ export default function CriarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0008] text-white">
+    <div className="relative isolate min-h-screen text-white" style={{ background: "#0d0008" }}>
+      {/* Fundo romântico (imagem gerada no Nano Banana) */}
+      <div
+        aria-hidden
+        className="fixed inset-0 -z-10 pointer-events-none bg-cover bg-center"
+        style={{ backgroundImage: "url('/images/fundo-romantico.jpg')" }}
+      />
+      <div
+        aria-hidden
+        className="fixed inset-0 -z-10 pointer-events-none"
+        style={{ background: "linear-gradient(180deg, rgba(13,0,8,0.58) 0%, rgba(13,0,8,0.78) 100%)" }}
+      />
+      {/* Abertura cinematográfica */}
+      <AnimatePresence>
+        {intro === true && (
+          <motion.div key="abertura" exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
+            <AberturaCinematografica onComplete={fecharIntro} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="border-b border-white/10 px-4 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-xl flex items-center justify-center text-sm"
-            style={{ background: "linear-gradient(135deg, #e84393, #c0306f)" }}>🌸</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/mascote.png" alt="LoveGift" className="w-9 h-9 object-contain" />
           <span className="text-lg font-black">
             <span style={{ background: "linear-gradient(135deg, #e84393, #ff6eb4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Love</span>
             <span className="text-white">Gift</span>
@@ -305,7 +364,7 @@ export default function CriarPage() {
             <div className="px-6 pt-8 pb-4 text-center">
               <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl"
                 style={{ background: "linear-gradient(135deg, rgba(232,67,147,0.2), rgba(192,48,111,0.1))", border: "1px solid rgba(232,67,147,0.3)" }}>
-                🌸
+                ❤️
               </div>
               <h2 className="text-xl font-black text-white mb-1">Pague com Pix</h2>
               <p className="text-white/40 text-sm">Escaneie o QR code com qualquer banco</p>
@@ -382,25 +441,32 @@ export default function CriarPage() {
         </div>
       )}
 
-      {/* Barra de progresso */}
-      <div className="h-1 bg-white/10">
-        <div className="h-full bg-[#e84393] transition-all duration-500"
-          style={{ width: `${(Math.min(etapa, totalEtapas) / totalEtapas) * 100}%` }} />
+      {/* Trilha de progresso */}
+      <div className="max-w-xl mx-auto px-4 pt-6">
+        <ProgressTrail etapa={Math.min(etapa, totalEtapas)} total={totalEtapas} />
       </div>
 
-      <div className="max-w-xl mx-auto px-4 py-12">
+      <div className="max-w-xl mx-auto px-4 py-8">
+        <AnimatePresence mode="wait">
+        <motion.div
+          key={etapa}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -24 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        >
 
         {/* ETAPA 1 — Informações */}
         {etapa === 1 && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Um presente pra ela 🌸</h1>
+              <h1 className="text-3xl font-bold mb-2">Um presente pra quem você ama ❤️</h1>
               <p className="text-white/50">Vamos começar com as informações do presente</p>
             </div>
             <div className="space-y-4">
               {[
-                { label: "Seu nome (filho/a)", key: "nomeRemetente", placeholder: "Ex: Lucas" },
-                { label: "Nome da sua mãe", key: "nomeDestinatario", placeholder: "Ex: Maria" },
+                { label: "Seu nome", key: "nomeRemetente", placeholder: "Ex: Lucas" },
+                { label: "Nome de quem vai receber", key: "nomeDestinatario", placeholder: "Ex: Maria" },
               ].map(({ label, key, placeholder }) => (
                 <div key={key}>
                   <label className="block text-sm font-medium mb-2 text-white/70">{label}</label>
@@ -414,9 +480,9 @@ export default function CriarPage() {
                 <select value={form.ocasiao} onChange={(e) => set("ocasiao", e.target.value)}
                   className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#e84393]/50 transition-colors">
                   <option value="">Selecione a ocasião</option>
-                  <option value="Dia das Mães">🌸 Dia das Mães (10 de maio)</option>
+                  <option value="Dia dos Namorados">❤️ Dia dos Namorados (12 de junho)</option>
                   <optgroup label="💑 Relacionamentos">
-                    {["Aniversário de namoro", "Aniversário de casamento", "Dia dos Namorados", "Pedido de namoro", "Reconciliação"].map(o => <option key={o} value={o}>{o}</option>)}
+                    {["Aniversário de namoro", "Aniversário de casamento", "Pedido de namoro", "Reconciliação"].map(o => <option key={o} value={o}>{o}</option>)}
                   </optgroup>
                   <optgroup label="🎂 Aniversários">
                     {["Aniversário", "Aniversário de 15 anos", "Aniversário de 18 anos"].map(o => <option key={o} value={o}>{o}</option>)}
@@ -433,7 +499,7 @@ export default function CriarPage() {
                 <label className="block text-sm font-medium mb-2 text-white/70">
                   Mensagem pessoal <span className="text-white/30 font-normal">{contadorMensagem}/500</span>
                 </label>
-                <textarea placeholder="Ex: Mãe, obrigado por tudo que você fez por mim. Cada sacrifício, cada abraço, cada palavra de apoio... Eu te amo mais do que consigo expressar." value={form.mensagem} maxLength={500} rows={5}
+                <textarea placeholder="Ex: Meu amor, obrigado por cada momento ao seu lado. Cada sorriso, cada abraço, cada plano nosso... Eu te amo mais do que consigo expressar." value={form.mensagem} maxLength={500} rows={5}
                   onChange={(e) => { set("mensagem", e.target.value); setContadorMensagem(e.target.value.length); }}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#e84393]/50 transition-colors resize-none" />
               </div>
@@ -816,6 +882,8 @@ export default function CriarPage() {
           </div>
         )}
 
+        </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

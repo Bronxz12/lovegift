@@ -253,6 +253,13 @@ const TEMAS: Record<string, { bg: string; accent: string; card: string; text: st
     text: "text-amber-900",
     border: "border-amber-300",
   },
+  netflix: {
+    bg: "bg-[#141414]",
+    accent: "text-[#E50914]",
+    card: "bg-[#1f1f1f]",
+    text: "text-white",
+    border: "border-[#E50914]/30",
+  },
 };
 
 function getYoutubeId(url: string): string | null {
@@ -272,6 +279,7 @@ export default function PresentePage() {
   const [musicaTocando, setMusicaTocando] = useState(false);
   const [wrappedAberto, setWrappedAberto] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  const [gerandoVideo, setGerandoVideo] = useState<string | null>(null);
   const [contador, setContador] = useState({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
   const slideInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const contadorInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -284,9 +292,6 @@ export default function PresentePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug }),
       }).catch(() => {});
-      if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).fbq) {
-        (window as unknown as Record<string, (a: string, b: string, c?: Record<string, unknown>) => void>).fbq("track", "Purchase", { value: 9.90, currency: "BRL" });
-      }
     }
   }, [slug, searchParams]);
 
@@ -296,6 +301,17 @@ export default function PresentePage() {
       .then((data) => {
         setPresente(data);
         setCarregando(false);
+        // Dispara Purchase no Pixel apenas uma vez por presente, e só quando
+        // o comprador volta do pagamento (?pago=1). Usa o valor real (premium ou padrão).
+        if (
+          typeof window !== "undefined" &&
+          searchParams.get("pago") === "1" &&
+          sessionStorage.getItem(`lg_purchase_${slug}`) !== "1"
+        ) {
+          const fbq = (window as unknown as Record<string, ((a: string, b: string, c?: Record<string, unknown>) => void) | undefined>).fbq;
+          if (fbq) fbq("track", "Purchase", { value: data?.premium ? 19.9 : 9.9, currency: "BRL" });
+          sessionStorage.setItem(`lg_purchase_${slug}`, "1");
+        }
         if (typeof window !== "undefined") {
           QRCodeLib.toDataURL(window.location.href.split("?")[0], {
             width: 200,
@@ -531,6 +547,222 @@ export default function PresentePage() {
     }
   };
 
+  // Exporta o presente como vídeo vertical (MP4/WebM) pra postar no Instagram.
+  const gerarVideo = async () => {
+    if (!presente) return;
+    const cTest = document.createElement("canvas") as HTMLCanvasElement & {
+      captureStream?: (fps?: number) => MediaStream;
+    };
+    if (typeof MediaRecorder === "undefined" || typeof cTest.captureStream !== "function") {
+      await handleInstagram(); // fallback: imagem (story PNG)
+      return;
+    }
+
+    try {
+      setGerandoVideo("Preparando…");
+      const W = 720, H = 1280;
+      const canvas = document.createElement("canvas") as HTMLCanvasElement & {
+        captureStream: (fps?: number) => MediaStream;
+      };
+      canvas.width = W; canvas.height = H;
+      const ctx = canvas.getContext("2d")!;
+
+      const nome = presente.nomeDestinatario || "Você";
+      const rem = presente.nomeRemetente || "";
+      const msg = presente.mensagem || "";
+      const dias = presente.dataEspecial
+        ? Math.max(0, Math.floor((Date.now() - new Date(presente.dataEspecial).getTime()) / 86400000))
+        : null;
+
+      const loadImg = (src: string) =>
+        new Promise<HTMLImageElement | null>((res) => {
+          const im = new Image();
+          im.crossOrigin = "anonymous";
+          im.onload = () => res(im);
+          im.onerror = () => res(null);
+          im.src = src;
+        });
+
+      const fotos = (presente.fotos || []).slice(0, 6);
+      const imgs = (await Promise.all(fotos.map((f) => loadImg(f.url)))).filter(
+        (x): x is HTMLImageElement => !!x
+      );
+      const qrImg = qrCode ? await loadImg(qrCode) : null;
+      const mascote = await loadImg("/images/mascote.png");
+
+      // Fundo de vídeo reutilizável (Veo). Mesma origem → não invalida o canvas.
+      const bg = document.createElement("video");
+      bg.src = "/videos/fundo-video.mp4";
+      bg.loop = true; bg.muted = true; bg.playsInline = true;
+      let bgOk = false;
+      try {
+        await new Promise<void>((res, rej) => {
+          bg.oncanplay = () => res();
+          bg.onerror = () => rej(new Error("bg"));
+          window.setTimeout(() => rej(new Error("timeout")), 4000);
+        });
+        await bg.play();
+        bgOk = true;
+      } catch { bgOk = false; }
+
+      // Áudio (best-effort — pode falhar por CORS)
+      let audioEl: HTMLAudioElement | null = null;
+      let audioCtx: AudioContext | null = null;
+      let audioTrack: MediaStreamTrack | null = null;
+      if (presente.musicaUrl && /\.mp3(\?|$)/i.test(presente.musicaUrl)) {
+        try {
+          audioEl = document.createElement("audio");
+          audioEl.src = presente.musicaUrl;
+          audioEl.crossOrigin = "anonymous";
+          audioEl.loop = true;
+          await audioEl.play();
+          const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+          audioCtx = new AC();
+          const dest = audioCtx.createMediaStreamDestination();
+          audioCtx.createMediaElementSource(audioEl).connect(dest);
+          audioTrack = dest.stream.getAudioTracks()[0] || null;
+        } catch { audioTrack = null; }
+      }
+
+      const stream = canvas.captureStream(30);
+      if (audioTrack) stream.addTrack(audioTrack);
+      const mime =
+        MediaRecorder.isTypeSupported("video/mp4;codecs=h264,aac") ? "video/mp4;codecs=h264,aac" :
+        MediaRecorder.isTypeSupported("video/mp4") ? "video/mp4" :
+        MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ? "video/webm;codecs=vp9" :
+        "video/webm";
+      const ext = mime.startsWith("video/mp4") ? "mp4" : "webm";
+      const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
+      const chunks: BlobPart[] = [];
+      rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+
+      const shareUrl = window.location.href.split("?")[0];
+      const done = new Promise<void>((resolve) => {
+        rec.onstop = async () => {
+          try { bg.pause(); } catch {}
+          try { audioEl?.pause(); await audioCtx?.close(); } catch {}
+          const blob = new Blob(chunks, { type: mime });
+          const file = new File([blob], `lovegift-${presente.slug}.${ext}`, { type: mime });
+          try {
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              await navigator.share({ files: [file], title: `Presente para ${nome} ♥`, text: shareUrl });
+            } else {
+              const a = document.createElement("a");
+              a.href = URL.createObjectURL(blob);
+              a.download = file.name;
+              a.click();
+            }
+          } catch {}
+          resolve();
+        };
+      });
+
+      // ---- helpers de desenho ----
+      const coverDraw = (
+        src: CanvasImageSource, iw: number, ih: number,
+        x: number, y: number, w: number, h: number, zoom = 1
+      ) => {
+        const r = Math.max(w / iw, h / ih) * zoom;
+        const dw = iw * r, dh = ih * r;
+        ctx.drawImage(src, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+      };
+      const rr = (x: number, y: number, w: number, h: number, r: number) => {
+        ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+      };
+      const wrap = (text: string, x: number, y: number, maxW: number, lh: number, max = 99) => {
+        const words = text.split(" "); let line = ""; let yy = y; let n = 0;
+        for (const wd of words) {
+          const t = line + wd + " ";
+          if (ctx.measureText(t).width > maxW && line) {
+            ctx.fillText(line.trim(), x, yy); line = wd + " "; yy += lh;
+            if (++n >= max) return yy;
+          } else line = t;
+        }
+        ctx.fillText(line.trim(), x, yy); return yy;
+      };
+      const drawBg = () => {
+        if (bgOk && bg.videoWidth) {
+          try { coverDraw(bg, bg.videoWidth, bg.videoHeight, 0, 0, W, H, 1.05); } catch { /* taint */ }
+          ctx.fillStyle = "rgba(13,0,8,0.5)"; ctx.fillRect(0, 0, W, H);
+        } else {
+          const g = ctx.createLinearGradient(0, 0, W, H);
+          g.addColorStop(0, "#2a0014"); g.addColorStop(0.5, "#0d0008"); g.addColorStop(1, "#2a0014");
+          ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        }
+      };
+
+      const T_INTRO = 2.6, T_CONT = (dias && dias > 0) ? 2.4 : 0, T_FOTO = 2.0, T_OUTRO = 3.4;
+      const T_FOTOS = imgs.length * T_FOTO;
+      const TOTAL = T_INTRO + T_CONT + T_FOTOS + T_OUTRO;
+
+      const start = performance.now();
+      const render = () => {
+        const e = (performance.now() - start) / 1000;
+        drawBg();
+        ctx.textAlign = "center";
+
+        if (e < T_INTRO) {
+          ctx.globalAlpha = Math.min(1, (e / T_INTRO) * 2);
+          if (mascote) ctx.drawImage(mascote, W / 2 - 70, H * 0.24 - 70, 140, 140);
+          ctx.fillStyle = "#ff8fbf"; ctx.font = "600 24px sans-serif";
+          ctx.fillText((presente.ocasiao || "").toUpperCase(), W / 2, H * 0.45);
+          ctx.fillStyle = "#fff"; ctx.font = "bold 60px sans-serif";
+          ctx.fillText(nome, W / 2, H * 0.53);
+          if (rem) { ctx.fillStyle = "rgba(255,255,255,0.65)"; ctx.font = "26px sans-serif"; ctx.fillText(`com amor de ${rem}`, W / 2, H * 0.59); }
+          ctx.globalAlpha = 1;
+        } else if (e < T_INTRO + T_CONT) {
+          ctx.globalAlpha = Math.min(1, ((e - T_INTRO) / T_CONT) * 3);
+          ctx.fillStyle = "rgba(255,255,255,0.6)"; ctx.font = "26px sans-serif";
+          ctx.fillText("JUNTOS HÁ", W / 2, H * 0.42);
+          ctx.fillStyle = "#e84393"; ctx.font = "bold 130px sans-serif";
+          ctx.fillText(String(dias), W / 2, H * 0.53);
+          ctx.fillStyle = "#fff"; ctx.font = "bold 38px sans-serif";
+          ctx.fillText("dias de amor", W / 2, H * 0.60);
+          ctx.globalAlpha = 1;
+        } else if (e < T_INTRO + T_CONT + T_FOTOS && imgs.length) {
+          const idx = Math.min(imgs.length - 1, Math.floor((e - T_INTRO - T_CONT) / T_FOTO));
+          const local = ((e - T_INTRO - T_CONT) % T_FOTO) / T_FOTO;
+          const im = imgs[idx];
+          const m = 56, cx = m, cy = H * 0.15, cw = W - 2 * m, ch = H * 0.62;
+          ctx.save();
+          rr(cx - 5, cy - 5, cw + 10, ch + 10, 36); ctx.fillStyle = "rgba(232,67,147,0.45)"; ctx.fill();
+          rr(cx, cy, cw, ch, 32); ctx.clip();
+          coverDraw(im, im.naturalWidth, im.naturalHeight, cx, cy, cw, ch, 1.04 + local * 0.08);
+          ctx.restore();
+          ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.font = "bold 30px sans-serif";
+          ctx.fillText(`${idx + 1} / ${imgs.length}`, W / 2, cy + ch + 64);
+        } else {
+          ctx.globalAlpha = Math.min(1, (e - (T_INTRO + T_CONT + T_FOTOS)) / 0.6);
+          const msgC = msg.length > 120 ? msg.slice(0, 117) + "…" : msg;
+          ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.font = "italic 30px sans-serif";
+          if (msgC) wrap(`"${msgC}"`, W / 2, H * 0.2, W - 130, 42, 5);
+          if (qrImg) {
+            const s = 230;
+            ctx.fillStyle = "#fff"; rr(W / 2 - s / 2 - 12, H * 0.46 - 12, s + 24, s + 24, 16); ctx.fill();
+            ctx.drawImage(qrImg, W / 2 - s / 2, H * 0.46, s, s);
+            ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.font = "24px sans-serif";
+            ctx.fillText("aponte a câmera pra abrir", W / 2, H * 0.46 + s + 50);
+          }
+          ctx.fillStyle = "#ff6eb4"; ctx.font = "bold 34px sans-serif";
+          ctx.fillText("❤ Crie o seu em lovegift.art.br", W / 2, H * 0.9);
+          ctx.globalAlpha = 1;
+        }
+
+        setGerandoVideo(`Gerando seu vídeo… ${Math.min(99, Math.round((e / TOTAL) * 100))}%`);
+        if (e < TOTAL && rec.state === "recording") requestAnimationFrame(render);
+        else if (rec.state === "recording") rec.stop();
+      };
+
+      rec.start();
+      requestAnimationFrame(render);
+      await done;
+    } catch (err) {
+      console.error("gerarVideo", err);
+    } finally {
+      setGerandoVideo(null);
+    }
+  };
+
   if (carregando) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
@@ -619,9 +851,11 @@ export default function PresentePage() {
           <button
             onClick={() => { setAberto(true); setMusicaTocando(true); }}
             className="w-full text-white font-bold px-10 py-5 rounded-2xl transition-all hover:scale-105 text-lg relative overflow-hidden"
-            style={{ background: "linear-gradient(135deg, #e84393 0%, #c0306f 100%)", boxShadow: "0 16px 48px rgba(232,67,147,0.5)" }}
+            style={presente.tema === "netflix"
+              ? { background: "#E50914", boxShadow: "0 16px 48px rgba(229,9,20,0.5)" }
+              : { background: "linear-gradient(135deg, #e84393 0%, #c0306f 100%)", boxShadow: "0 16px 48px rgba(232,67,147,0.5)" }}
           >
-            <span className="relative z-10">Abrir presente ♥</span>
+            <span className="relative z-10">{presente.tema === "netflix" ? "▶ Assistir" : "Abrir presente ♥"}</span>
           </button>
           <p className="text-white/20 text-xs mt-5 animate-pulse">Toque para revelar a surpresa</p>
         </div>
@@ -631,6 +865,18 @@ export default function PresentePage() {
 
   return (
     <div className={`min-h-screen ${tema.bg} ${tema.text} pb-28`}>
+
+      {/* Overlay de geração de vídeo */}
+      {gerandoVideo && (
+        <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center text-center px-8"
+          style={{ background: "rgba(8,0,5,0.92)", backdropFilter: "blur(8px)" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/mascote.png" alt="" className="w-20 h-20 object-contain animate-bob mb-6" />
+          <div className="w-10 h-10 border-2 border-[#e84393]/30 border-t-[#e84393] rounded-full animate-spin mb-5" />
+          <p className="text-white font-bold text-lg mb-1">{gerandoVideo}</p>
+          <p className="text-white/40 text-sm">Não feche a tela — leva alguns segundinhos 💕</p>
+        </div>
+      )}
 
       {/* ── Iframe oculto para autoplay da música ── */}
 
@@ -923,6 +1169,21 @@ export default function PresentePage() {
           <h3 className="text-center font-bold mb-1 text-sm uppercase tracking-widest opacity-50">Compartilhe este presente</h3>
           <p className="text-center text-xs opacity-30 mb-6">Envie o link para quem você ama</p>
 
+          {/* Baixar vídeo pro Instagram */}
+          <button
+            onClick={gerarVideo}
+            disabled={!!gerandoVideo}
+            className="w-full mb-3 flex items-center justify-center gap-2 text-white font-bold py-4 rounded-2xl transition-all hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
+            style={{ background: "linear-gradient(135deg, #e84393 0%, #c0306f 60%, #f5c518 140%)", boxShadow: "0 10px 30px rgba(232,67,147,0.4)" }}
+          >
+            {gerandoVideo ? (
+              <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{gerandoVideo}</>
+            ) : (
+              <>📲 Baixar vídeo pro Instagram</>
+            )}
+          </button>
+          <p className="text-center text-[11px] opacity-30 mb-6">Gera um vídeo vertical com as fotos e a história pra postar nos Stories ✨</p>
+
           {/* Botões de share */}
           <div className="grid grid-cols-3 gap-2 mb-6">
             <button
@@ -991,6 +1252,16 @@ export default function PresentePage() {
           </div>
         </div>
       </section>
+
+      {/* Selo discreto LoveGift */}
+      <footer className="max-w-md mx-auto px-4 pb-10 pt-1 flex items-center justify-center gap-2 opacity-50">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/mascote.png" alt="LoveGift" className="w-6 h-6 object-contain" />
+        <span className="text-xs text-white/70">
+          feito com <span className="text-[#e84393]">❤️</span> no{" "}
+          <span className="font-bold text-white">LoveGift</span>
+        </span>
+      </footer>
     </div>
   );
 }

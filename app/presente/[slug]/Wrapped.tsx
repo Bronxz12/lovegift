@@ -87,7 +87,7 @@ function Particles({ color = "#e84393", count = 10 }: { color?: string; count?: 
 }
 
 /* ─── Bandas coloridas com número gigante ─── */
-function ColorBands({ target }: { target: number }) {
+function ColorBands({ target, caption }: { target: number; caption: string }) {
   const [phase, setPhase] = useState(0); // 0=bands, 1=clean
   const numStr = target.toLocaleString("pt-BR");
 
@@ -126,24 +126,45 @@ function ColorBands({ target }: { target: number }) {
           filter: "drop-shadow(0 0 40px #e8439366)" }}>
         {numStr}
       </p>
-      <p className="text-white/40 text-sm mt-4">você faz parte dos filhos mais especiais do mundo 🌸</p>
+      <p className="text-white/40 text-sm mt-4">{caption}</p>
     </div>
   );
 }
 
 /* ─── Captions das fotos ─── */
-const PHOTO_SLIDES = [
-  { title: "A mulher mais forte que conheço 💪", sub: "Ela carregou o mundo nas costas sem nunca desistir. Tudo por amor." },
-  { title: "Saudade de momentos assim 🥹", sub: "Cada memória com ela é um tesouro que o tempo não apaga." },
-  { title: "Minha mãe, meu lar 🏡", sub: "Em qualquer lugar do mundo, ela é onde me sinto em casa." },
+const PHOTO_SLIDES_FAMILIA = [
+  { title: "A pessoa mais forte que conheço 💪", sub: "Carregou o mundo nas costas sem nunca desistir. Tudo por amor." },
+  { title: "Saudade de momentos assim 🥹", sub: "Cada memória é um tesouro que o tempo não apaga." },
+  { title: "Meu lar é onde você está 🏡", sub: "Em qualquer lugar do mundo, é com você que me sinto em casa." },
   { title: "Uma memória especial ✨", sub: "Guardada para sempre no coração." },
   { title: "Momentos como esse... 💫", sub: "São os que a gente nunca vai esquecer." },
-  { title: "Obrigado por tudo, mãe 🌸", sub: "Por cada abraço, cada conselho e cada sacrifício feito por amor." },
+  { title: "Obrigado por tudo 💖", sub: "Por cada abraço, cada conselho e cada sacrifício feito por amor." },
   { title: "Nossa história em fotos 🎞️", sub: "Cada imagem vale mais que mil palavras." },
-  { title: "Ela sempre esteve lá 💖", sub: "Nos dias bons e nos dias difíceis — sempre do meu lado." },
+  { title: "Sempre esteve lá 💖", sub: "Nos dias bons e nos dias difíceis — sempre do meu lado." },
   { title: "Olha essa aqui! 😭", sub: "Esse momento ficou guardado pra sempre no meu coração." },
-  { title: "Sem palavras 💗", sub: "A foto fala por si só. Te amo, mãe." },
+  { title: "Sem palavras 💗", sub: "A foto fala por si só. Eu te amo." },
 ];
+
+const PHOTO_SLIDES_ROMANTICO = [
+  { title: "A pessoa que eu escolhi 💕", sub: "De todas as pessoas do mundo, é com você que eu quero ficar." },
+  { title: "Saudade de momentos assim 🥹", sub: "Cada instante ao seu lado vira memória que eu guardo pra sempre." },
+  { title: "Você é o meu lar 🏡", sub: "Em qualquer lugar do mundo, é ao seu lado que eu me sinto em casa." },
+  { title: "Uma memória especial ✨", sub: "Guardada para sempre no nosso coração." },
+  { title: "Momentos como esse... 💫", sub: "São os que a gente nunca vai esquecer." },
+  { title: "Obrigado por tanto amor ❤️", sub: "Por cada abraço, cada sorriso e cada dia ao seu lado." },
+  { title: "Nossa história em fotos 🎞️", sub: "Cada imagem vale mais que mil palavras." },
+  { title: "Você sempre esteve lá 💖", sub: "Nos dias bons e nos dias difíceis — sempre comigo." },
+  { title: "Olha essa aqui! 😭", sub: "Esse momento ficou guardado pra sempre no meu coração." },
+  { title: "Sem palavras 💗", sub: "A foto fala por si só. Eu te amo." },
+];
+
+const OCASIOES_FAMILIA = ["Dia das Mães", "Dia dos Pais", "Dia das Avós", "Dia dos Avôs"];
+const getPhotoSlides = (ocasiao: string) =>
+  OCASIOES_FAMILIA.includes(ocasiao) ? PHOTO_SLIDES_FAMILIA : PHOTO_SLIDES_ROMANTICO;
+const getHorasCaption = (ocasiao: string) =>
+  OCASIOES_FAMILIA.includes(ocasiao)
+    ? "você faz parte das pessoas mais especiais do mundo 💖"
+    : "vocês fazem parte da história de amor mais linda do mundo ❤️";
 
 /* ─── Monta slides ─── */
 function buildSlides(presente: Presente) {
@@ -416,7 +437,7 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
           <div className="absolute inset-0 flex flex-col items-center justify-center"
             style={{ background: "#000" }}>
             <Particles color={glow} count={6} />
-            <ColorBands target={slide.horas as number} />
+            <ColorBands target={slide.horas as number} caption={getHorasCaption(presente.ocasiao)} />
           </div>
         )}
 
@@ -426,10 +447,10 @@ export default function Wrapped({ presente, onClose }: { presente: Presente; onC
             {/* Título NO TOPO */}
             <div className="pt-14 px-5 pb-3 flex-shrink-0 text-center" style={{ animation: "slide-up 0.4s ease both" }}>
               <p className="text-white text-lg font-bold">
-                {PHOTO_SLIDES[(slide.index as number) % PHOTO_SLIDES.length].title}
+                {getPhotoSlides(presente.ocasiao)[(slide.index as number) % getPhotoSlides(presente.ocasiao).length].title}
               </p>
               <p className="text-white/45 text-xs mt-1 leading-snug px-4">
-                {PHOTO_SLIDES[(slide.index as number) % PHOTO_SLIDES.length].sub}
+                {getPhotoSlides(presente.ocasiao)[(slide.index as number) % getPhotoSlides(presente.ocasiao).length].sub}
               </p>
             </div>
 
