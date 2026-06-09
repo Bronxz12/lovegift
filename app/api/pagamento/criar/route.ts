@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     }
 
     const isPremium = premium || presente.premium || false;
-    const preco = isPremium ? 19.9 : 9.9;
+    const preco = isPremium ? 19.9 : 16.9;
     const titulo = isPremium
       ? `LoveGift Premium — Presente para ${presente.nomeDestinatario}`
       : `LoveGift — Presente para ${presente.nomeDestinatario}`;

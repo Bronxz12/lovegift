@@ -148,7 +148,7 @@ export default function Home() {
             Uma retrospectiva animada com as fotos de vocês, a música de vocês e a mensagem
             que vai ficar guardada para sempre no coração.
           </p>
-          <p className="text-sm text-white/25 mb-10">Pronto em 5 minutos · Pagamento único R$ 9,90</p>
+          <p className="text-sm text-white/25 mb-10">Pronto em 5 minutos · Pagamento único R$ 16,90</p>
 
           {/* CTA */}
           <div className="flex flex-col items-center gap-3 mb-3">
@@ -412,12 +412,12 @@ export default function Home() {
                 ✦ OFERTA POR TEMPO LIMITADO
               </div>
               <div className="flex items-baseline justify-center gap-3 mb-2">
-                <span className="text-white/25 line-through text-2xl">R$ 29,90</span>
-                <span className="bg-[#e84393]/20 text-[#e84393] text-sm font-black px-2.5 py-1 rounded-full border border-[#e84393]/30">-66%</span>
+                <span className="text-white/25 line-through text-2xl">R$ 33,90</span>
+                <span className="bg-[#e84393]/20 text-[#e84393] text-sm font-black px-2.5 py-1 rounded-full border border-[#e84393]/30">-50%</span>
               </div>
               <div className="flex items-baseline justify-center gap-1 mb-1">
                 <span className="text-2xl text-white/60 font-bold">R$</span>
-                <span className="text-7xl font-black" style={{ background: "linear-gradient(135deg, #e84393, #ff6eb4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>9</span>
+                <span className="text-7xl font-black" style={{ background: "linear-gradient(135deg, #e84393, #ff6eb4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>16</span>
                 <span className="text-3xl text-white/50 font-bold">,90</span>
               </div>
               <p className="text-white/30 text-sm mb-8">pagamento único · sem mensalidade</p>
@@ -430,6 +430,7 @@ export default function Home() {
                   "Mensagem especial no coração do presente",
                   "Estatísticas dos anos de amor",
                   "Link permanente + QR Code exclusivo",
+                  "📖 Livro do casal em PDF pra imprimir (NOVO!)",
                   "Tema especial Dia dos Namorados ❤️",
                   "🛡️ Garantia de 7 dias",
                 ].map((item, i) => (
@@ -488,7 +489,7 @@ export default function Home() {
               Qual vai ser a reação<br />do seu amor? ❤️
             </h2>
             <p className="text-white/45 mb-4 text-lg">Quem você ama merece um presente que vá além do buquê. Crie agora em 5 minutos.</p>
-            <p className="text-[#e84393] font-bold mb-10 text-base">Por apenas R$ 9,90 — pagamento único, acesso permanente.</p>
+            <p className="text-[#e84393] font-bold mb-10 text-base">Por apenas R$ 16,90 — pagamento único, acesso permanente.</p>
           </Reveal>
           <Link href="/criar"
             className="inline-block text-white text-xl font-black px-14 py-5 rounded-full transition-all hover:scale-105 mb-5"

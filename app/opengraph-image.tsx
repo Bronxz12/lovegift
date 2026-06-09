@@ -104,7 +104,7 @@ export default function OGImage() {
           }}
         >
           <span style={{ fontSize: "24px", color: "white", fontWeight: 700 }}>
-            ❤️ Criar agora por R$ 9,90
+            ❤️ Criar agora por R$ 16,90
           </span>
         </div>
 

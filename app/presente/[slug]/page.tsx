@@ -280,6 +280,7 @@ export default function PresentePage() {
   const [wrappedAberto, setWrappedAberto] = useState(false);
   const [copiado, setCopiado] = useState(false);
   const [gerandoVideo, setGerandoVideo] = useState<string | null>(null);
+  const [gerandoLivro, setGerandoLivro] = useState(false);
   const [contador, setContador] = useState({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
   const slideInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const contadorInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -309,7 +310,7 @@ export default function PresentePage() {
           sessionStorage.getItem(`lg_purchase_${slug}`) !== "1"
         ) {
           const fbq = (window as unknown as Record<string, ((a: string, b: string, c?: Record<string, unknown>) => void) | undefined>).fbq;
-          if (fbq) fbq("track", "Purchase", { value: data?.premium ? 19.9 : 9.9, currency: "BRL" });
+          if (fbq) fbq("track", "Purchase", { value: data?.premium ? 19.9 : 16.9, currency: "BRL" });
           sessionStorage.setItem(`lg_purchase_${slug}`, "1");
         }
         if (typeof window !== "undefined") {
@@ -339,18 +340,41 @@ export default function PresentePage() {
     };
   }, [presente]);
 
-  // Confetti na abertura (cores personalizadas por ocasião)
+  // Efeito de abertura: chuva suave de pétalas + corações (premium, não "confete de papel")
   useEffect(() => {
     if (!aberto || !presente) return;
-    const cfg = getOcasiaoConfig(presente.ocasiao);
-    const fire = (angle: number, origin: { x: number; y: number }) => {
-      confetti({ particleCount: 60, spread: 55, angle, origin, colors: cfg.confettiCores });
-    };
-    const t = setTimeout(() => {
-      fire(60, { x: 0, y: 0.65 });
-      fire(120, { x: 1, y: 0.65 });
-    }, 300);
-    return () => clearTimeout(t);
+    const ehFamilia = ["Dia das Mães", "Dia dos Pais", "Dia das Avós", "Dia dos Avôs"].includes(presente.ocasiao);
+    // formas a partir de emojis (renderizam coloridas)
+    const sf = (t: string, s = 2) =>
+      (confetti as unknown as { shapeFromText: (o: { text: string; scalar: number }) => unknown }).shapeFromText({ text: t, scalar: s });
+    const formas = (ehFamilia ? [sf("🌸"), sf("💐"), sf("💖")] : [sf("🌹"), sf("🌸"), sf("❤️"), sf("✨", 1.4)]) as import("canvas-confetti").Shape[];
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const intervals: ReturnType<typeof setInterval>[] = [];
+
+    // 1) "pop" de boas-vindas dos cantos de baixo
+    timers.push(setTimeout(() => {
+      const pop = (angle: number, x: number) =>
+        confetti({ particleCount: 18, spread: 75, angle, startVelocity: 48, gravity: 1, decay: 0.92,
+          scalar: 1.8, ticks: 180, origin: { x, y: 1 }, shapes: formas, disableForReducedMotion: true });
+      pop(60, 0); pop(120, 1);
+    }, 250));
+
+    // 2) chuva suave caindo do topo por ~3,5s
+    timers.push(setTimeout(() => {
+      const fim = Date.now() + 3500;
+      const rain = setInterval(() => {
+        if (Date.now() > fim) { clearInterval(rain); return; }
+        confetti({
+          particleCount: 3, startVelocity: 0, ticks: 340, gravity: 0.5, decay: 0.95,
+          scalar: 1.6, drift: (Math.random() - 0.5) * 1.4, flat: false,
+          origin: { x: Math.random(), y: -0.1 }, shapes: formas, disableForReducedMotion: true,
+        });
+      }, 170);
+      intervals.push(rain);
+    }, 350));
+
+    return () => { timers.forEach(clearTimeout); intervals.forEach(clearInterval); };
   }, [aberto, presente]);
 
   // Contador ao vivo
@@ -853,6 +877,256 @@ export default function PresentePage() {
     }
   };
 
+  // ===== LIVRO PDF (físico, pra imprimir) =====
+  const gerarLivroPDF = async () => {
+    if (!presente || gerandoLivro) return;
+    setGerandoLivro(true);
+    try {
+      const { jsPDF } = await import("jspdf");
+      const W = 1240, H = 1754; // A4 retrato ~150dpi
+      const SERIF = "'Playfair Display', Georgia, serif";
+      const SANS = "system-ui, -apple-system, 'Segoe UI', sans-serif";
+      const OURO = "#b8932f", OURO2 = "rgba(184,147,47,0.45)", VINHO = "#7a1038", TINTA = "#4a2030";
+
+      try { await document.fonts.load(`700 90px ${SERIF}`); await document.fonts.load(`italic 500 40px ${SERIF}`); await document.fonts.ready; } catch {}
+
+      const loadImg = (src: string) =>
+        new Promise<HTMLImageElement | null>((res) => {
+          const im = new Image(); im.crossOrigin = "anonymous";
+          im.onload = () => res(im); im.onerror = () => res(null); im.src = src;
+        });
+
+      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [W, H], compress: true });
+      let first = true;
+
+      // ----- margens com espaço pra ENCADERNAÇÃO -----
+      const M = 90;            // margem segura (todos os lados)
+      const GUT = 95;          // gutter extra na lombada (lado interno/esquerdo)
+      const fL = M + GUT, fT = M, fR = W - M, fB = H - M; // moldura segura
+      const cx = (fL + fR) / 2;                            // centro do conteúdo (deslocado p/ direita)
+      const cw = fR - fL;
+      let ctx2: CanvasRenderingContext2D; // referência usada por LS
+      const LS = (v: string) => { try { (ctx2 as unknown as { letterSpacing: string }).letterSpacing = v; } catch {} };
+
+      const novaPagina = () => {
+        const c = document.createElement("canvas"); c.width = W; c.height = H;
+        const ctx = c.getContext("2d")!; ctx2 = ctx;
+        // fundo creme
+        const g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, "#fffaf4"); g.addColorStop(1, "#fbeee2");
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        // textura suave de pétalas nos cantos (sutil)
+        ctx.fillStyle = "rgba(232,67,147,0.05)";
+        ctx.beginPath(); ctx.arc(fR, fT, 220, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(fL, fB, 240, 0, Math.PI * 2); ctx.fill();
+        // marca leve da dobra (lombada) na margem interna
+        const sp = ctx.createLinearGradient(fL - GUT, 0, fL, 0);
+        sp.addColorStop(0, "rgba(122,16,56,0.05)"); sp.addColorStop(1, "transparent");
+        ctx.fillStyle = sp; ctx.fillRect(fL - GUT, fT, GUT, fB - fT);
+        // moldura dourada dupla (dentro da área segura)
+        ctx.strokeStyle = OURO; ctx.lineWidth = 3; ctx.strokeRect(fL, fT, cw, fB - fT);
+        ctx.strokeStyle = OURO2; ctx.lineWidth = 1.5; ctx.strokeRect(fL + 16, fT + 16, cw - 32, fB - fT - 32);
+        // fleurons dourados nos cantos
+        ctx.font = "26px " + SANS; ctx.fillStyle = OURO; ctx.textAlign = "center";
+        [[fL + 30, fT + 44], [fR - 30, fT + 44], [fL + 30, fB - 26], [fR - 30, fB - 26]].forEach(([x, y]) => ctx.fillText("❦", x, y));
+        return { c, ctx };
+      };
+
+      // desenha um coração preenchido (emblema)
+      const heart = (ctx: CanvasRenderingContext2D, cxh: number, cyh: number, s: number, fill: string | CanvasGradient) => {
+        ctx.save(); ctx.beginPath();
+        ctx.moveTo(cxh, cyh + s * 0.35);
+        ctx.bezierCurveTo(cxh, cyh + s * 0.1, cxh - s, cyh - s * 0.1, cxh - s, cyh - s * 0.5);
+        ctx.bezierCurveTo(cxh - s, cyh - s, cxh - s * 0.35, cyh - s, cxh, cyh - s * 0.5);
+        ctx.bezierCurveTo(cxh + s * 0.35, cyh - s, cxh + s, cyh - s, cxh + s, cyh - s * 0.5);
+        ctx.bezierCurveTo(cxh + s, cyh - s * 0.1, cxh, cyh + s * 0.1, cxh, cyh + s * 0.35);
+        ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); ctx.restore();
+      };
+
+      // ----- CAPA estilo livro de romance (couro + dourado) -----
+      const capaCouro = () => {
+        const c = document.createElement("canvas"); c.width = W; c.height = H;
+        const ctx = c.getContext("2d")!; ctx2 = ctx;
+        // base de couro vinho
+        const g = ctx.createRadialGradient(W / 2, H * 0.42, 120, W / 2, H * 0.5, H * 0.75);
+        g.addColorStop(0, "#6e1328"); g.addColorStop(0.55, "#4d0c1c"); g.addColorStop(1, "#280610");
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        // grão do couro (textura)
+        for (let i = 0; i < 4200; i++) {
+          const x = Math.random() * W, y = Math.random() * H, claro = Math.random() > 0.5;
+          ctx.fillStyle = claro ? `rgba(255,210,180,${Math.random() * 0.035})` : `rgba(0,0,0,${Math.random() * 0.06})`;
+          ctx.fillRect(x, y, 2, 2);
+        }
+        // vinheta
+        const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.72);
+        vg.addColorStop(0, "transparent"); vg.addColorStop(1, "rgba(0,0,0,0.55)");
+        ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+        // lombada (sombra + vinco na margem interna esquerda)
+        const sp = ctx.createLinearGradient(0, 0, fL, 0);
+        sp.addColorStop(0, "rgba(0,0,0,0.45)"); sp.addColorStop(1, "transparent");
+        ctx.fillStyle = sp; ctx.fillRect(0, 0, fL, H);
+        ctx.strokeStyle = "rgba(0,0,0,0.4)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(fL - 30, 0); ctx.lineTo(fL - 30, H); ctx.stroke();
+
+        // moldura dourada dupla com brilho
+        const gold = (x0: number, y0: number, x1: number, y1: number) => {
+          const gg = ctx.createLinearGradient(x0, y0, x1, y1);
+          gg.addColorStop(0, "#7a5a16"); gg.addColorStop(0.5, "#f1d57e"); gg.addColorStop(1, "#7a5a16"); return gg;
+        };
+        ctx.strokeStyle = gold(fL, fT, fR, fB); ctx.lineWidth = 6; ctx.strokeRect(fL, fT, cw, fB - fT);
+        ctx.strokeStyle = gold(fR, fT, fL, fB); ctx.lineWidth = 2; ctx.strokeRect(fL + 22, fT + 22, cw - 44, fB - fT - 44);
+
+        ctx.textAlign = "center";
+        const OUROC = "#e8c45a";
+        // fleurons grandes nos cantos + topo/base
+        ctx.fillStyle = OUROC;
+        ctx.font = "48px " + SANS;
+        [[fL + 46, fT + 64], [fR - 46, fT + 64], [fL + 46, fB - 34], [fR - 46, fB - 34]].forEach(([x, y]) => ctx.fillText("❦", x, y));
+
+        // selo topo
+        ctx.fillStyle = OUROC; ctx.font = `600 30px ${SANS}`; LS("10px");
+        ctx.fillText("NOSSA HISTÓRIA", cx, fT + 150); LS("0px");
+        // divisor ornamental
+        const divisor = (y: number) => {
+          ctx.strokeStyle = gold(cx - 200, y, cx + 200, y); ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(cx - 200, y); ctx.lineTo(cx - 30, y); ctx.moveTo(cx + 30, y); ctx.lineTo(cx + 200, y); ctx.stroke();
+          ctx.fillStyle = OUROC; ctx.font = "30px " + SANS; ctx.fillText("❧", cx, y + 10);
+        };
+        divisor(fT + 200);
+
+        // emblema de coração dourado (relevo)
+        const hg = ctx.createLinearGradient(cx - 90, 480, cx + 90, 640);
+        hg.addColorStop(0, "#f3da86"); hg.addColorStop(0.5, "#c9a227"); hg.addColorStop(1, "#8a6a1e");
+        heart(ctx, cx + 3, 583, 92, "rgba(0,0,0,0.5)"); // sombra do relevo
+        heart(ctx, cx, 580, 92, hg);
+        ctx.strokeStyle = "rgba(255,240,200,0.5)"; ctx.lineWidth = 2;
+        // títulos (gravado: sombra escura + dourado)
+        const gravado = (txt: string, y: number, size: number, font = SERIF, weight = "800") => {
+          ctx.font = `${weight} ${size}px ${font}`;
+          ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillText(txt, cx + 3, y + 3);
+          const tg = ctx.createLinearGradient(cx, y - size, cx, y + 10);
+          tg.addColorStop(0, "#f7e3a1"); tg.addColorStop(1, "#c9a227");
+          ctx.fillStyle = tg; ctx.fillText(txt, cx, y);
+        };
+        gravado(dest, 820, 110);
+        ctx.fillStyle = OUROC; ctx.font = `italic 500 56px ${SERIF}`; ctx.fillText("&", cx, 910);
+        gravado(rem, 1010, 110);
+
+        ctx.fillStyle = "#e7c9a0"; ctx.font = `italic 500 46px ${SERIF}`;
+        ctx.fillText(presente.ocasiao || "", cx, 1200);
+        if (presente.dataEspecial) {
+          ctx.fillStyle = OUROC; ctx.font = `500 32px ${SANS}`;
+          ctx.fillText("desde " + new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }), cx, 1270);
+        }
+        divisor(fB - 200);
+        ctx.fillStyle = "#caa86a"; ctx.font = `500 26px ${SANS}`; ctx.fillText("lovegift.art.br", cx, fB - 110);
+        return { c, ctx };
+      };
+      const add = (c: HTMLCanvasElement) => {
+        if (!first) pdf.addPage([W, H], "portrait");
+        first = false;
+        pdf.addImage(c.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, W, H);
+      };
+      const wrap = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxW: number, lh: number, max = 30) => {
+        const words = text.split(" "); let line = "", yy = y, n = 0;
+        for (const w of words) {
+          const t = line + w + " ";
+          if (ctx.measureText(t).width > maxW && line) { ctx.fillText(line.trim(), x, yy); line = w + " "; yy += lh; if (++n >= max) break; }
+          else line = t;
+        }
+        ctx.fillText(line.trim(), x, yy); return yy;
+      };
+
+      const rem = presente.nomeRemetente || "";
+      const dest = presente.nomeDestinatario || "";
+      const legendas = [
+        "Meu lugar favorito é ao seu lado",
+        "Cada instante com você é especial",
+        "A gente combina demais",
+        "Você é o meu presente",
+        "Pra sempre, nós dois",
+        "Te amo mais a cada dia",
+      ];
+
+      // ---- CAPA (couro estilo livro de romance) ----
+      { const { c } = capaCouro(); add(c); }
+
+      // ---- PÁGINAS DE FOTOS ----
+      const fotos = presente.fotos.slice(0, 8);
+      for (let i = 0; i < fotos.length; i++) {
+        const img = await loadImg(fotos[i].url);
+        const { c, ctx } = novaPagina();
+        // moldura da foto (dentro da área segura)
+        const fx = fL + 44, fy = fT + 120, fw = cw - 88, fh = 980;
+        ctx.save();
+        ctx.shadowColor = "rgba(122,16,56,0.25)"; ctx.shadowBlur = 30; ctx.shadowOffsetY = 14;
+        ctx.fillStyle = "#fff"; ctx.fillRect(fx - 16, fy - 16, fw + 32, fh + 32);
+        ctx.restore();
+        ctx.strokeStyle = OURO; ctx.lineWidth = 3; ctx.strokeRect(fx - 16, fy - 16, fw + 32, fh + 32);
+        if (img) {
+          ctx.save();
+          ctx.beginPath(); ctx.rect(fx, fy, fw, fh); ctx.clip();
+          const r = Math.max(fw / img.naturalWidth, fh / img.naturalHeight);
+          const dw = img.naturalWidth * r, dh = img.naturalHeight * r;
+          ctx.drawImage(img, fx + (fw - dw) / 2, fy + (fh - dh) / 2, dw, dh);
+          ctx.restore();
+        } else {
+          ctx.fillStyle = "#f3dbe5"; ctx.fillRect(fx, fy, fw, fh);
+        }
+        // legenda
+        ctx.textAlign = "center"; ctx.fillStyle = VINHO; ctx.font = `italic 500 48px ${SERIF}`;
+        wrap(ctx, legendas[i % legendas.length], cx, fy + fh + 110, cw - 80, 60, 2);
+        // número da página
+        ctx.fillStyle = OURO; ctx.font = `500 28px ${SANS}`;
+        ctx.fillText(String(i + 1), cx, fB - 50);
+        add(c);
+      }
+
+      // ---- MENSAGEM ----
+      if (presente.mensagem) {
+        const { c, ctx } = novaPagina();
+        ctx.textAlign = "center";
+        ctx.fillStyle = OURO; ctx.font = `600 30px ${SANS}`; LS("8px");
+        ctx.fillText("UMA MENSAGEM PRA VOCÊ", cx, fT + 230); LS("0px");
+        ctx.fillStyle = "#e84393"; ctx.font = "200px " + SERIF; ctx.fillText("“", cx, fT + 430);
+        ctx.fillStyle = TINTA; ctx.font = `italic 500 56px ${SERIF}`;
+        wrap(ctx, presente.mensagem, cx, fT + 610, cw - 130, 88, 14);
+        ctx.fillStyle = OURO; ctx.font = `italic 500 44px ${SERIF}`;
+        ctx.fillText("— com amor, " + rem, cx, fB - 120);
+        add(c);
+      }
+
+      // ---- ENCERRAMENTO ----
+      {
+        const { c, ctx } = novaPagina();
+        ctx.textAlign = "center";
+        if (diasJuntos && diasJuntos > 0) {
+          ctx.fillStyle = OURO; ctx.font = `600 30px ${SANS}`; LS("8px");
+          ctx.fillText("O NOSSO TEMPO JUNTOS", cx, fT + 440); LS("0px");
+          ctx.fillStyle = "#e84393"; ctx.font = `800 200px ${SERIF}`;
+          ctx.fillText(diasJuntos.toLocaleString("pt-BR"), cx, fT + 660);
+          ctx.fillStyle = VINHO; ctx.font = `italic 500 56px ${SERIF}`;
+          ctx.fillText("dias de amor", cx, fT + 750);
+        } else {
+          ctx.fillStyle = "#e84393"; ctx.font = "180px " + SANS; ctx.fillText("❤", cx, fT + 660);
+        }
+        ctx.fillStyle = TINTA; ctx.font = `italic 500 48px ${SERIF}`;
+        wrap(ctx, "E que venham muitos e muitos dias mais.", cx, fT + 920, cw - 130, 64, 3);
+        ctx.fillStyle = OURO; ctx.font = `600 28px ${SANS}`;
+        ctx.fillText("feito com ❤ no LoveGift", cx, fB - 120);
+        ctx.fillStyle = "#e84393"; ctx.font = `700 32px ${SANS}`;
+        ctx.fillText("lovegift.art.br", cx, fB - 75);
+        add(c);
+      }
+
+      pdf.save(`livro-${dest || "lovegift"}.pdf`);
+    } catch (err) {
+      console.error("gerarLivroPDF", err);
+      alert("Não consegui gerar o livro agora. Tente de novo 💕");
+    } finally {
+      setGerandoLivro(false);
+    }
+  };
+
   if (carregando) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
@@ -1319,7 +1593,22 @@ export default function PresentePage() {
               <>📲 Baixar vídeo pro Instagram</>
             )}
           </button>
-          <p className="text-center text-[11px] opacity-30 mb-6">Gera um vídeo vertical com as fotos e a história pra postar nos Stories ✨</p>
+          <p className="text-center text-[11px] opacity-30 mb-4">Gera um vídeo vertical com as fotos e a história pra postar nos Stories ✨</p>
+
+          {/* Baixar livro PDF pra imprimir */}
+          <button
+            onClick={gerarLivroPDF}
+            disabled={gerandoLivro}
+            className="w-full mb-2 flex items-center justify-center gap-2 font-bold py-4 rounded-2xl transition-all hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
+            style={{ background: "linear-gradient(135deg, #b8932f 0%, #e8c45a 50%, #b8932f 100%)", color: "#3a1d10", boxShadow: "0 10px 30px rgba(184,147,47,0.4)" }}
+          >
+            {gerandoLivro ? (
+              <><span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />Montando o livro…</>
+            ) : (
+              <>📖 Baixar livro pra imprimir (PDF)</>
+            )}
+          </button>
+          <p className="text-center text-[11px] opacity-30 mb-6">Um livro do casal com capa, fotos e molduras — pronto pra imprimir e presentear de verdade 💛</p>
 
           {/* Botões de share */}
           <div className="grid grid-cols-3 gap-2 mb-6">
@@ -1376,14 +1665,14 @@ export default function PresentePage() {
             <p className="text-2xl mb-3">🎁</p>
             <h3 className="font-black text-xl mb-2 text-white">Crie um presente igual</h3>
             <p className="text-sm opacity-50 mb-5 leading-relaxed">
-              Emocione quem você ama com fotos, música e uma retrospectiva animada. Por apenas R$ 9,90.
+              Emocione quem você ama com fotos, música e uma retrospectiva animada. Por apenas R$ 16,90.
             </p>
             <Link
               href="/criar"
               className="inline-block font-bold px-8 py-3.5 rounded-2xl text-white text-sm transition-all hover:scale-105"
               style={{ background: "linear-gradient(135deg, #e84393 0%, #c0306f 100%)", boxShadow: "0 8px 24px rgba(232,67,147,0.35)" }}
             >
-              Criar meu presente → R$ 9,90
+              Criar meu presente → R$ 16,90
             </Link>
             <p className="text-xs opacity-25 mt-3">Pagamento único · Entrega imediata · Acesso permanente</p>
           </div>

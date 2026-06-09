@@ -234,7 +234,7 @@ export default function CriarPage() {
           (window as unknown as Record<string, (a: string, b: string, c?: Record<string, unknown>) => void>).fbq(
             "track",
             "InitiateCheckout",
-            { value: pagData.valor ?? (form.premium ? 19.9 : 9.9), currency: "BRL" }
+            { value: pagData.valor ?? (form.premium ? 19.9 : 16.9), currency: "BRL" }
           );
         }
         setPixModal({
@@ -254,7 +254,7 @@ export default function CriarPage() {
     }
   };
 
-  const preco = form.premium ? "R$ 19,90" : "R$ 9,90";
+  const preco = form.premium ? "R$ 19,90" : "R$ 16,90";
 
   // Polling + countdown ao abrir modal Pix
   useEffect(() => {
@@ -681,12 +681,16 @@ export default function CriarPage() {
               <div className="border-t border-white/10 pt-4 space-y-2">
                 <div className="flex justify-between text-sm text-white/60">
                   <span>Presente digital</span>
-                  <span>R$ 9,90</span>
+                  <span>R$ 16,90</span>
+                </div>
+                <div className="flex justify-between text-sm text-[#e84393]">
+                  <span>📖 Livro do casal pra imprimir (PDF)</span>
+                  <span>incluído</span>
                 </div>
                 {form.premium && (
                   <div className="flex justify-between text-sm" style={{ color: "#f5c518" }}>
                     <span>👑 Upgrade Premium</span>
-                    <span>+ R$ 9,90</span>
+                    <span>+ R$ 3,00</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center pt-2 border-t border-white/10">
@@ -703,7 +707,7 @@ export default function CriarPage() {
               style={{ background: "linear-gradient(135deg, #1a1500 0%, #0f0f00 100%)" }}>
               <div className="px-5 py-3 flex items-center gap-2" style={{ background: "linear-gradient(90deg, #f5c518, #e8b400)" }}>
                 <span className="text-lg">👑</span>
-                <span className="font-black text-black text-sm uppercase tracking-wider">UPGRADE PREMIUM — só R$ 9,90 a mais</span>
+                <span className="font-black text-black text-sm uppercase tracking-wider">UPGRADE PREMIUM — só R$ 3,00 a mais</span>
               </div>
               <div className="p-5 space-y-3">
                 <p className="text-white/70 text-sm">Eleve seu presente para um nível acima com recursos exclusivos:</p>
@@ -730,7 +734,7 @@ export default function CriarPage() {
                     onChange={(e) => set("premium", e.target.checked)}
                   />
                   <label htmlFor="premium" className="text-sm font-semibold text-[#f5c518] cursor-pointer">
-                    Sim! Quero o Premium por + R$ 9,90
+                    Sim! Quero o Premium por + R$ 3,00
                   </label>
                 </div>
                 {form.premium && (
@@ -755,7 +759,7 @@ export default function CriarPage() {
                   <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Processando...</>
                 ) : form.premium
                   ? "👑 Personalizar Premium →"
-                  : `Pagar R$ 9,90 →`}
+                  : `Pagar R$ 16,90 →`}
               </button>
             </div>
 

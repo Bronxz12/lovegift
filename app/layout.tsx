@@ -11,10 +11,10 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   metadataBase: new URL("https://lovegift.art.br"),
   title: "LoveGift — Presente Digital para o Dia dos Namorados",
-  description: "Surpreenda quem você ama com fotos, música e uma retrospectiva animada. Pronto em 5 minutos por apenas R$ 9,90.",
+  description: "Surpreenda quem você ama com fotos, música e uma retrospectiva animada. Pronto em 5 minutos por apenas R$ 16,90.",
   openGraph: {
     title: "LoveGift ❤️ — O presente que vai emocionar seu amor",
-    description: "Fotos de vocês, a música de vocês e uma retrospectiva emocionante. Crie agora em 5 minutos por R$ 9,90.",
+    description: "Fotos de vocês, a música de vocês e uma retrospectiva emocionante. Crie agora em 5 minutos por R$ 16,90.",
     type: "website",
     url: "https://lovegift.art.br",
     siteName: "LoveGift",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "LoveGift ❤️ — O presente que vai emocionar seu amor",
-    description: "Fotos de vocês, a música de vocês e uma retrospectiva emocionante. R$ 9,90.",
+    description: "Fotos de vocês, a música de vocês e uma retrospectiva emocionante. R$ 16,90.",
   },
   icons: {
     icon: "/icon.svg",
