@@ -1621,7 +1621,12 @@ export default function PresentePage() {
             {gerandoVideo ? (
               <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{gerandoVideo}</>
             ) : (
-              <>📲 Baixar vídeo pro Instagram</>
+              <>
+                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current flex-shrink-0" aria-hidden="true">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+                Baixar vídeo pro Instagram
+              </>
             )}
           </button>
           <p className="text-center text-[11px] opacity-30 mb-4">Gera um vídeo vertical com as fotos e a história pra postar nos Stories ✨</p>
@@ -1660,7 +1665,26 @@ export default function PresentePage() {
             {gerandoLivro ? (
               <><span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />Montando o livro…</>
             ) : (
-              <>📖 Baixar livro pra imprimir (PDF)</>
+              <>
+                <svg viewBox="0 0 32 32" className="w-8 h-8 flex-shrink-0" aria-hidden="true">
+                  {/* miolo / páginas */}
+                  <rect x="9" y="5" width="18" height="23" rx="2" fill="#f5e9cf" />
+                  <line x1="25.4" y1="7.5" x2="25.4" y2="25.5" stroke="#d8c49a" strokeWidth="0.7" />
+                  <line x1="24.2" y1="7.5" x2="24.2" y2="25.5" stroke="#e3d4ae" strokeWidth="0.6" />
+                  {/* capa de couro */}
+                  <rect x="5.5" y="4" width="19" height="24" rx="2.4" fill="#7a1038" />
+                  {/* lombada */}
+                  <rect x="5.5" y="4" width="4" height="24" rx="2.4" fill="#5c0b27" />
+                  <line x1="9.4" y1="4.6" x2="9.4" y2="27.4" stroke="#4a081f" strokeWidth="0.8" />
+                  {/* moldura dourada */}
+                  <rect x="11.4" y="7" width="11.2" height="18" rx="1" fill="none" stroke="#e8c45a" strokeWidth="0.9" opacity="0.85" />
+                  {/* coração na capa */}
+                  <g transform="translate(11.3 10.2) scale(0.43)">
+                    <path d="M12 21s-7.5-4.9-9.6-9.2C1.1 8.6 2.6 5.5 5.7 5.5c1.8 0 3.3 1 4.3 2.5C11 6.5 12.5 5.5 14.3 5.5c3.1 0 4.6 3.1 3.3 6.3C19.5 16.1 12 21 12 21z" fill="#f5d98a" />
+                  </g>
+                </svg>
+                Baixar livro pra imprimir (PDF)
+              </>
             )}
           </button>
           <p className="text-center text-[11px] opacity-30 mb-6">Um livro do casal com capa, fotos e molduras — pronto pra imprimir e presentear de verdade 💛</p>
