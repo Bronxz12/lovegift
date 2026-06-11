@@ -280,6 +280,7 @@ export default function PresentePage() {
   const [wrappedAberto, setWrappedAberto] = useState(false);
   const [copiado, setCopiado] = useState(false);
   const [gerandoVideo, setGerandoVideo] = useState<string | null>(null);
+  const [videoPronto, setVideoPronto] = useState<{ file: File; url: string; name: string } | null>(null);
   const [gerandoLivro, setGerandoLivro] = useState(false);
   const [contador, setContador] = useState({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
   const slideInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -691,23 +692,32 @@ export default function PresentePage() {
       const chunks: BlobPart[] = [];
       rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
 
-      const shareUrl = window.location.href.split("?")[0];
+      const baixar = (blob: Blob, name: string) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      };
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       const done = new Promise<void>((resolve) => {
         rec.onstop = async () => {
           try { bg.pause(); } catch {}
           try { audioEl?.pause(); await audioCtx?.close(); } catch {}
           const blob = new Blob(chunks, { type: mime });
           const file = new File([blob], `lovegift-${presente.slug}.${ext}`, { type: mime });
-          try {
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-              await navigator.share({ files: [file], title: `Presente para ${nome} ♥`, text: shareUrl });
-            } else {
-              const a = document.createElement("a");
-              a.href = URL.createObjectURL(blob);
-              a.download = file.name;
-              a.click();
-            }
-          } catch {}
+          if (isMobile) {
+            // No celular o navigator.share PRECISA de um toque "fresco". Durante a
+            // renderização (~15s) a ativação do clique original expira, então o share
+            // falharia. Guardamos o vídeo e mostramos um player + botão pra o usuário
+            // tocar de novo e compartilhar nos Stories (gesto válido).
+            setVideoPronto((prev) => {
+              if (prev) URL.revokeObjectURL(prev.url);
+              return { file, url: URL.createObjectURL(blob), name: file.name };
+            });
+          } else {
+            baixar(blob, file.name); // desktop: download direto
+          }
           resolve();
         };
       });
@@ -875,6 +885,27 @@ export default function PresentePage() {
     } finally {
       setGerandoVideo(null);
     }
+  };
+
+  // Compartilhar/baixar o vídeo já pronto — chamado por um NOVO toque do usuário
+  // (gesto válido), então o navigator.share não falha por ativação expirada.
+  const compartilharVideo = async () => {
+    if (!videoPronto || !presente) return;
+    const { file, url, name } = videoPronto;
+    const shareUrl = window.location.href.split("?")[0];
+    const nome = presente.nomeDestinatario || "Você";
+    if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: `Presente para ${nome} ♥`, text: shareUrl });
+        return;
+      } catch (e) {
+        if ((e as Error)?.name === "AbortError") return; // usuário cancelou
+        // qualquer outro erro → cai pro download abaixo
+      }
+    }
+    const a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
   };
 
   // ===== LIVRO PDF (físico, pra imprimir) =====
@@ -1594,6 +1625,30 @@ export default function PresentePage() {
             )}
           </button>
           <p className="text-center text-[11px] opacity-30 mb-4">Gera um vídeo vertical com as fotos e a história pra postar nos Stories ✨</p>
+
+          {/* Vídeo pronto — player + compartilhar (toque novo = gesto válido) */}
+          {videoPronto && (
+            <div className={`mb-4 rounded-2xl border ${tema.border} overflow-hidden`}>
+              <video
+                src={videoPronto.url}
+                controls
+                playsInline
+                className="w-full bg-black aspect-[9/16] max-h-[60vh] object-contain"
+              />
+              <div className="p-3">
+                <button
+                  onClick={compartilharVideo}
+                  className="w-full flex items-center justify-center gap-2 text-white font-bold py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+                  style={{ background: "linear-gradient(135deg, #f09433 0%, #dc2743 50%, #bc1888 100%)", boxShadow: "0 8px 24px rgba(220,39,67,0.4)" }}
+                >
+                  📲 Compartilhar nos Stories
+                </button>
+                <p className="text-center text-[11px] opacity-40 mt-2">
+                  ou toque e segure no vídeo para salvar na galeria
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Baixar livro PDF pra imprimir */}
           <button
