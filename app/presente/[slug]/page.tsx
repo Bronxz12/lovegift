@@ -1046,7 +1046,7 @@ export default function PresentePage() {
         ctx.fillText(presente.ocasiao || "", cx, 1200);
         if (presente.dataEspecial) {
           ctx.fillStyle = OUROC; ctx.font = `500 32px ${SANS}`;
-          ctx.fillText("desde " + new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }), cx, 1270);
+          ctx.fillText("desde " + new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" }), cx, 1270);
         }
         divisor(fB - 200);
         ctx.fillStyle = "#caa86a"; ctx.font = `500 26px ${SANS}`; ctx.fillText("lovegift.art.br", cx, fB - 110);
@@ -1396,7 +1396,7 @@ export default function PresentePage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/images/icons/icone-carta.png" alt="" className="w-9 h-9 object-contain mb-1.5" />
               <p className={`font-elegante text-xl font-bold ${tema.accent}`}>
-                {new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+                {new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })}
               </p>
               <p className="text-xs opacity-50 uppercase tracking-widest mt-1">data especial</p>
             </div>
@@ -1561,7 +1561,7 @@ export default function PresentePage() {
           {[
             {
               data: presente.dataEspecial
-                ? new Date(presente.dataEspecial).toLocaleDateString("pt-BR")
+                ? new Date(presente.dataEspecial).toLocaleDateString("pt-BR", { timeZone: "UTC" })
                 : "Um dia especial",
               icon: oc.emoji,
               titulo: oc.timelineInicio,
