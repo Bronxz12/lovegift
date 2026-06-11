@@ -302,6 +302,18 @@ export default function Home() {
                 desc: "As fotos de vocês ganham vida numa sequência cinematográfica estilo Spotify Wrapped. Cada imagem com música, transição e texto. A reação de quem você ama é inevitável.",
               },
               {
+                icon: "📲",
+                badge: "Novo",
+                title: "Vídeo pronto pro Instagram",
+                desc: "Baixe o presente como um vídeo vertical — com as fotos, o contador e a história de vocês — pronto pra postar nos Stories e Reels. Cada post desses é a sua história viralizando.",
+              },
+              {
+                icon: "📖",
+                badge: "Novo",
+                title: "Livro do casal pra imprimir",
+                desc: "Um livro em PDF com capa de couro, as fotos de vocês em molduras e a mensagem — pronto pra imprimir, encadernar e presentear de verdade. O digital que vira lembrança física.",
+              },
+              {
                 icon: "💌",
                 badge: "Personalizado",
                 title: "Mensagem do coração",
@@ -430,6 +442,7 @@ export default function Home() {
                   "Mensagem especial no coração do presente",
                   "Estatísticas dos anos de amor",
                   "Link permanente + QR Code exclusivo",
+                  "📲 Vídeo pronto pra postar no Instagram (NOVO!)",
                   "📖 Livro do casal em PDF pra imprimir (NOVO!)",
                   "Tema especial Dia dos Namorados ❤️",
                   "🛡️ Garantia de 7 dias",
